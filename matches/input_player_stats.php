@@ -58,7 +58,15 @@ if(isset($_POST['save_stats'])){
 <head>
     <title>Input Match Stats</title>
     <link rel="stylesheet" href="../dashboard/maindashboard.css">
-    <style>.in { width: 55px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; font-size: 11px; padding: 6px; border-radius: 4px; text-align: center; }</style>
+    <style>
+        body {
+            background: linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.9)), 
+                        url('https://images2.alphacoders.com/105/1059431.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #e2e8f0;
+        }
+        .in { width: 55px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; font-size: 11px; padding: 6px; border-radius: 4px; text-align: center; }
+    </style>
 </head>
 <body>
 <div class="wrapper">

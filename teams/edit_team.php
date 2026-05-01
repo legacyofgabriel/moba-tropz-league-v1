@@ -54,16 +54,34 @@ if(isset($_POST['update'])){
         body {
             margin: 0; padding: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at top, #0f172a, #020617);
+            background: #020617;
+            background-image: 
+                linear-gradient(rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.85)),
+                url('https://images5.alphacoders.com/105/1059432.jpg');
+            background-size: cover;
+            background-position: center;
             height: 100vh; display: flex; align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+        }
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, transparent 1px, transparent 2px),
+                repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.02) 0px, transparent 1px, transparent 40px);
+            background-size: 100% 3px, 40px 100%;
+            pointer-events: none;
+            z-index: 0;
         }
         .card {
             width: 100%; max-width: 400px;
             background: rgba(15, 23, 42, 0.9);
             backdrop-filter: blur(12px);
             padding: 40px; border-radius: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
             box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            position: relative; z-index: 1;
         }
         .header h2 { 
             font-family: 'Rajdhani', sans-serif; color: #fff; 

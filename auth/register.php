@@ -27,12 +27,32 @@ if(isset($_POST['register'])){
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: radial-gradient(circle at top, #0f172a, #020617);
+            background: #020617;
+            background-image: 
+                linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.8)),
+                url('https://images6.alphacoders.com/105/1059438.jpg'); /* Land of Dawn Scenery */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        /* MLBB Overlay Effect */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, rgba(0,0,0,0.15) 0px, transparent 1px, transparent 2px),
+                repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.02) 0px, transparent 1px, transparent 40px);
+            background-size: 100% 3px, 40px 100%;
+            pointer-events: none;
+            z-index: 0;
         }
         .register-container {
             width: 100%;
@@ -53,10 +73,12 @@ if(isset($_POST['register'])){
         .card {
             background: rgba(15, 23, 42, 0.8);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
+            border: 1px solid rgba(56, 189, 248, 0.2);
             border-radius: 20px;
             padding: 40px 30px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
         }
         .header h1 { font-size: 24px; margin: 0; color: #fff; text-align: center; }
         .header p { font-size: 14px; color: #94a3b8; text-align: center; margin: 10px 0 30px; }
