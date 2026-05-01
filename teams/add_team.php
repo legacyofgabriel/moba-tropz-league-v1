@@ -75,9 +75,33 @@ if(isset($_POST['add'])){
     <?php endif; ?>
 
     <style>
-        .maker-preview { width: 120px; height: 120px; background: #020617; border-radius: 15px; margin: 0 auto 20px; border: 2px dashed rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .maker-preview img { width: 100%; height: 100%; object-fit: contain; }
+        /* Existing styles for add_team.php */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #020617;
+            background-image: 
+                linear-gradient(rgba(2, 6, 23, 0.7), rgba(2, 6, 23, 0.8)),
+                url('https://images2.alphacoders.com/105/1059431.jpg'); /* MLBB Map Scenery */
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .maker-preview { width: 120px; height: 120px; background: rgba(2, 6, 23, 0.7); border-radius: 15px; margin: 0 auto 20px; border: 2px dashed rgba(56,189,248,0.3); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .maker-preview img { width: 100%; height: 100%; object-fit: contain; position: absolute; top: 0; left: 0; }
+        .maker-preview::before { content: "PREVIEW"; position: absolute; font-size: 10px; color: rgba(255,255,255,0.3); font-weight: bold; }
         .maker-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .maker-controls label { font-size: 10px; opacity: 0.6; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        .maker-controls input[type="color"] { width: 100%; height: 40px; padding: 2px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: #020617; }
+        .maker-controls select { width: 100%; padding: 8px; height: 40px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; background: #020617; color: #fff; font-size: 12px; }
     </style>
 
     <form method="POST" enctype="multipart/form-data">
@@ -85,12 +109,12 @@ if(isset($_POST['add'])){
             <div class="maker-preview" id="logoPreview"></div>
             <div class="maker-controls">
                 <div>
-                    <label style="font-size: 10px; opacity: 0.6;">BG COLOR</label>
-                    <input type="color" id="makerColor" value="#38bdf8" style="height: 40px; padding: 2px;">
+                    <label>BG COLOR</label>
+                    <input type="color" id="makerColor" value="#38bdf8">
                 </div>
                 <div>
-                    <label style="font-size: 10px; opacity: 0.6;">ICON</label>
-                    <select id="makerIcon" style="margin:0;">
+                    <label>ICON</label>
+                    <select id="makerIcon">
                         <option value="shield">SHIELD</option>
                         <option value="star">STAR</option>
                         <option value="none">NONE</option>

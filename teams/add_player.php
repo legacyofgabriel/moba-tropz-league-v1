@@ -90,8 +90,15 @@ if(isset($_POST['add'])){
             <option value="COACH">COACH</option>
             <option value="SUB">SUBSTITUTE</option>
         </select>
-        <input type="file" name="photo" accept="image/jpeg,image/png,image/webp">
-        <div class="hint">Optional profile photo. JPG, PNG, or WEBP only. Max 2MB.</div>
+        <label for="player-photo-upload" style="
+            display: block; width: 100%; padding: 10px; background: #020617; 
+            border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 8px; 
+            font-size: 12px; text-align: center; cursor: pointer; transition: all 0.3s; margin-top: 15px;
+        ">
+            <span id="player-photo-filename">Upload Player Photo (Optional)</span>
+        </label>
+        <input type="file" name="photo" id="player-photo-upload" accept="image/jpeg,image/png,image/webp" style="display: none;">
+        <div class="hint" style="margin-top: 7px;">Optional profile photo. JPG, PNG, or WEBP only. Max 2MB.</div>
         <div style="display:flex; align-items:center; gap:10px; margin-top:15px; font-size:14px;">
             <input type="checkbox" name="captain" id="c" style="width:auto; margin:0;">
             <label for="c">Set as Team Captain?</label>
@@ -100,5 +107,15 @@ if(isset($_POST['add'])){
         <a href="../teams/teams.php" style="display:block; text-align:center; color:#94a3b8; margin-top:15px; text-decoration:none; font-size:12px;">Cancel</a>
     </form>
 </div>
+<script>
+    document.getElementById('player-photo-upload').addEventListener('change', function() {
+        const filenameSpan = document.getElementById('player-photo-filename');
+        if (this.files && this.files.length > 0) {
+            filenameSpan.textContent = this.files[0].name;
+        } else {
+            filenameSpan.textContent = 'Upload Player Photo (Optional)';
+        }
+    });
+</script>
 </body>
 </html>

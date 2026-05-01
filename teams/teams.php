@@ -156,6 +156,7 @@ $teams = $conn->query("SELECT * FROM teams WHERE tournament_id=$tournament_id");
                         <!-- MANAGEMENT ACTIONS -->
                         <div class="manage-bar" style="display: flex; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
                             <a href="add_player.php?team_id=<?= $team['id'] ?>" class="table-action" style="background:var(--cyan); color:#020617; border:none; padding: 8px 16px;">+ ADD PLAYER</a>
+                            <a href="logo_maker.php?team_name=<?= urlencode($team['name']) ?>" class="table-action muted" style="padding: 8px 16px;">LOGO MAKER</a>
                             <a href="edit_team.php?id=<?= $team['id'] ?>" class="table-action muted" style="padding: 8px 16px;">EDIT TEAM</a>
                             <a href="?delete_team_id=<?= $team['id'] ?>" class="table-action muted" style="padding: 8px 16px; color: var(--danger); border-color: rgba(248,113,113,0.2);" onclick="return confirm('Delete whole team?')">DELETE SQUAD</a>
                         </div>

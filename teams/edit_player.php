@@ -123,7 +123,16 @@ if(isset($_POST['update'])){
         </div>
         <div class="form-group">
             <label>Profile Photo</label>
-            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp">
+            <label for="player-photo-upload" style="
+                display: block; width: 100%; padding: 10px; background: #020617; 
+                border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 8px; 
+                font-size: 12px; text-align: center; cursor: pointer; transition: all 0.3s;
+            ">
+                <span id="player-photo-filename">
+                    <?= !empty($p['photo_path']) ? basename($p['photo_path']) : 'Upload New Photo (Optional)' ?>
+                </span>
+            </label>
+            <input type="file" name="photo" id="player-photo-upload" accept="image/jpeg,image/png,image/webp" style="display: none;">
             <div class="hint">Upload a new photo to replace the current one. JPG, PNG, or WEBP. Max 2MB.</div>
         </div>
         
@@ -135,5 +144,15 @@ if(isset($_POST['update'])){
         <a href="teams.php" style="display:block; text-align:center; color:#94a3b8; margin-top:15px; text-decoration:none; font-size:13px;">Cancel</a>
     </form>
 </div>
+<script>
+    document.getElementById('player-photo-upload').addEventListener('change', function() {
+        const filenameSpan = document.getElementById('player-photo-filename');
+        if (this.files && this.files.length > 0) {
+            filenameSpan.textContent = this.files[0].name;
+        } else {
+            filenameSpan.textContent = 'Upload New Photo (Optional)';
+        }
+    });
+</script>
 </body>
 </html>

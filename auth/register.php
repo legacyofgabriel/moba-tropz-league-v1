@@ -143,11 +143,17 @@ if(isset($_POST['register'])){
         </div>
 
         <?php if(isset($error)): ?>
-            <div class="msg" style="color: #f87171; background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.2);"><?= $error ?></div>
+            <div class="msg error-msg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                <span><?= $error ?></span>
+            </div>
         <?php endif; ?>
 
         <?php if(isset($success)): ?>
-            <div class="msg" style="color: #4ade80; background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.2);"><?= $success ?></div>
+            <div class="msg success-msg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-8.9"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                <span><?= $success ?></span>
+            </div>
         <?php endif; ?>
 
         <form method="POST">
@@ -170,5 +176,18 @@ if(isset($_POST['register'])){
     </div>
 </div>
 
+<style>
+    .msg {
+        display: flex; align-items: center; justify-content: center;
+        padding: 12px; border-radius: 10px; font-size: 13px; text-align: center;
+        margin-bottom: 20px; border: 1px solid;
+    }
+    .error-msg {
+        color: #f87171; background: rgba(248, 113, 113, 0.1); border-color: rgba(248, 113, 113, 0.2);
+    }
+    .success-msg {
+        color: #4ade80; background: rgba(74, 222, 128, 0.1); border-color: rgba(74, 222, 128, 0.2);
+    }
+</style>
 </body>
 </html>

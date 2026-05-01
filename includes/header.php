@@ -8,6 +8,8 @@ if (!function_exists('render_app_header')) {
             'teams' => ['label' => 'Teams', 'href' => '../teams/teams.php'],
             'matches' => ['label' => 'Matches', 'href' => '../matches/matches.php'],
             'standings' => ['label' => 'Standings', 'href' => '../matches/standings.php'],
+            'logo-maker' => ['label' => 'Logo Maker', 'href' => '../teams/logo_maker.php'],
+            'ai-gen' => ['label' => 'Profile Creator', 'href' => '../teams/prompt_generator.php'],
             'mvp' => ['label' => 'MVP', 'href' => '../matches/mvp_leaderboard.php'],
         ];
         ?>

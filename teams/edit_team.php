@@ -117,7 +117,16 @@ if(isset($_POST['update'])){
     <form method="POST" enctype="multipart/form-data">
         <div class="form-group">
             <label>Team Logo</label>
-            <input type="file" name="logo" accept="image/*">
+            <label for="team-logo-upload" style="
+                display: block; width: 100%; padding: 10px; background: #020617; 
+                border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 8px; 
+                font-size: 12px; text-align: center; cursor: pointer; transition: all 0.3s;
+            ">
+                <span id="team-logo-filename">
+                    <?= !empty($team['logo_path']) ? basename($team['logo_path']) : 'Upload New Logo (Optional)' ?>
+                </span>
+            </label>
+            <input type="file" name="logo" id="team-logo-upload" accept="image/*" style="display: none;">
         </div>
         <div class="form-group">
             <label>Team Full Name</label>
@@ -131,5 +140,15 @@ if(isset($_POST['update'])){
         <a href="teams.php" class="cancel-link">Cancel and Return</a>
     </form>
 </div>
+<script>
+    document.getElementById('team-logo-upload').addEventListener('change', function() {
+        const filenameSpan = document.getElementById('team-logo-filename');
+        if (this.files && this.files.length > 0) {
+            filenameSpan.textContent = this.files[0].name;
+        } else {
+            filenameSpan.textContent = 'Upload New Logo (Optional)';
+        }
+    });
+</script>
 </body>
 </html>

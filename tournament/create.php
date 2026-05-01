@@ -119,7 +119,7 @@ if(isset($_POST['create'])){
         input:focus, select:focus {
             outline: none;
             border-color: #38bdf8;
-            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1), 0 0 15px rgba(56, 189, 248, 0.3); /* Enhanced glow */
         }
 
         .btn {
@@ -137,7 +137,10 @@ if(isset($_POST['create'])){
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3); }
+        .btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3), 0 0 20px rgba(56, 189, 248, 0.4); /* Added cyan glow */
+        }
 
         .cancel-btn {
             display: block;
