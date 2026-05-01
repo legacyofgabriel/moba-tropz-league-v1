@@ -1,0 +1,11 @@
+# Ignore database credentials
+config/db.php
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+*.log

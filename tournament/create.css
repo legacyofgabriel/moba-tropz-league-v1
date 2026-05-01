@@ -1,0 +1,117 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+.page {
+    width: 100%;
+    max-width: 80px; 
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.header p {
+    margin-top: 5px;
+    color: #94a3b8;
+    text-align: center;
+    font-size: 13px;
+}
+
+.card {
+    margin-top: 15px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    width: 440px;
+}
+
+.card::before {
+    content: "";
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: linear-gradient(45deg, #38bdf8, transparent, #6366f1);
+    border-radius: 16px;
+    z-index: -1;
+    opacity: 0.3;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+    color: #cbd5f5;
+}
+
+input, select {
+    width: 100%;
+    padding: 12px;       /* Ginawang pantay na padding */
+    height: 45px;        /* Nag-set ng fixed height para siguradong pantay */
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(2, 6, 23, 0.8);
+    color: #fff;
+    font-size: 14px;
+    transition: 0.25s;
+    display: block;
+    outline: none;      
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+}
+
+.grid {
+    display: block; 
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.25s;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(99,102,241,0.4);
+}
+
+input:hover, select:hover {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(56, 189, 248, 0.5);
+}

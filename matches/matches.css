@@ -1,0 +1,49 @@
+.match-card {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 15px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #e2e8f0;
+    margin-top: 20px;
+}
+
+th {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 2px solid rgba(56, 189, 248, 0.3);
+    color: #38bdf8;
+    font-family: 'Rajdhani', sans-serif;
+    text-transform: uppercase;
+}
+
+td {
+    padding: 15px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.score-input {
+    width: 50px;
+    background: rgba(2, 6, 23, 0.8);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #fff;
+    padding: 5px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.status-pending { background: rgba(240, 180, 41, 0.2); color: #f0b429; }
+.status-completed { background: rgba(74, 222, 128, 0.2); color: #4ade80; }
