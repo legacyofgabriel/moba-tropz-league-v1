@@ -44,6 +44,39 @@ foreach($tournaments as $t) {
     $total_teams += intval($t['registered_teams']);
     $total_players += intval($t['registered_players']);
 }
+
+// Enhancement: Standings Snapshot logic
+$standings_snapshot = [];
+if ($selected_id) {
+    $ss_query = $conn->query("
+        SELECT s.*, t.name as team_name, t.short_name 
+        FROM standings s 
+        JOIN teams t ON s.team_id = t.id 
+        WHERE s.tournament_id = $selected_id 
+        ORDER BY s.points DESC, s.wins DESC 
+        LIMIT 3
+    ");
+    while($row = $ss_query->fetch_assoc()) {
+        $standings_snapshot[] = $row;
+    }
+}
+
+// Enhancement: Recent Results logic
+$recent_results = [];
+if ($selected_id) {
+    $rr_query = $conn->query("
+        SELECT m.*, t1.name as t1, t2.name as t2, t1.short_name as s1, t2.short_name as s2
+        FROM matches m
+        JOIN teams t1 ON m.team1_id = t1.id
+        JOIN teams t2 ON m.team2_id = t2.id
+        WHERE m.tournament_id = $selected_id AND m.is_locked = 1
+        ORDER BY m.id DESC
+        LIMIT 3
+    ");
+    while($row = $rr_query->fetch_assoc()) {
+        $recent_results[] = $row;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -133,6 +166,13 @@ foreach($tournaments as $t) {
 <?php render_app_header('dashboard'); ?>
 
 <div class="wrapper">
+    <?php if(isset($_GET['msg'])): ?>
+        <div class="tactical-alert success">SYSTEM_MSG: <?= htmlspecialchars($_GET['msg']) ?></div>
+    <?php endif; ?>
+    <?php if(isset($_GET['error'])): ?>
+        <div class="tactical-alert error">SYSTEM_ERR: <?= htmlspecialchars($_GET['error']) ?></div>
+    <?php endif; ?>
+
     <div class="hero">
         <?php if ($active_tournament): ?>
             <div class="hero-main">
@@ -140,7 +180,10 @@ foreach($tournaments as $t) {
                     <div class="hero-label" style="letter-spacing: 4px; font-size: 11px; color: var(--cyan); font-weight: 800;">CURRENTLY MANAGING</div>
                     <h1 class="hero-title"><?= htmlspecialchars(strtoupper($active_tournament['name'])) ?></h1>
                     <div class="hero-meta">
-                        <span class="hero-code"><?= htmlspecialchars($active_tournament['tournament_code']) ?></span>
+                        <span class="hero-code" style="cursor:pointer;" title="Click to copy" onclick="copyToClipboard('<?= htmlspecialchars($active_tournament['tournament_code']) ?>', this)">
+                            <?= htmlspecialchars($active_tournament['tournament_code']) ?>
+                            <small style="margin-left:8px; opacity:0.6; font-size:9px;">(COPY)</small>
+                        </span>
                         <span><?= htmlspecialchars($active_tournament['format_type']) ?></span>
                         <span><?= intval($active_tournament['team_count']) ?> teams</span>
                     </div>
@@ -169,6 +212,48 @@ foreach($tournaments as $t) {
             <strong><?= $total_players ?></strong>
         </div>
     </div>
+
+    <?php if ($active_tournament && !empty($standings_snapshot)): ?>
+    <div class="section-label">Standings Snapshot (Top 3)</div>
+    <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 50px;">
+        <?php foreach($standings_snapshot as $index => $s): ?>
+            <div class="stat-card" style="border-left: 4px solid <?= $index === 0 ? 'var(--gold)' : 'var(--cyan)' ?>;">
+                <span class="stat-label">RANK <?= $index + 1 ?> — <?= htmlspecialchars($s['short_name']) ?></span>
+                <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                    <strong style="font-size: 20px;"><?= htmlspecialchars($s['team_name']) ?></strong>
+                    <span style="font-family:'Rajdhani'; color:var(--cyan); font-weight:800; font-size:18px;">
+                        <?= $s['points'] ?> PTS
+                    </span>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+    <?php endif; ?>
+
+    <?php if ($active_tournament && !empty($recent_results)): ?>
+    <div class="section-label">Recent Combat Results</div>
+    <div class="table-shell" style="margin-bottom: 50px;">
+        <table class="tournament-table">
+            <tbody>
+                <?php foreach($recent_results as $match): ?>
+                <tr>
+                    <td style="width:100px; color:var(--muted); font-size:10px; font-weight:800;"><?= strtoupper($match['match_type']) ?></td>
+                    <td style="text-align:right; font-weight:700; width:30%;"><?= strtoupper($match['t1']) ?></td>
+                    <td style="text-align:center; width:150px;">
+                        <span style="font-family:'Rajdhani'; font-size:24px; color:var(--cyan); font-weight:800;">
+                            <?= $match['score1'] ?> — <?= $match['score2'] ?>
+                        </span>
+                    </td>
+                    <td style="text-align:left; font-weight:700; width:30%; color:var(--danger);"><?= strtoupper($match['t2']) ?></td>
+                    <td style="text-align:right;">
+                        <a href="../matches/input_player_stats.php?match_id=<?= $match['id'] ?>" class="table-action" style="font-size:10px;">VIEW INTEL</a>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
 
     <div class="section-head">
         <div>
@@ -235,5 +320,16 @@ foreach($tournaments as $t) {
     </div>
 </div>
 <?php render_app_footer(); ?>
+<script>
+function copyToClipboard(text, el) {
+    navigator.clipboard.writeText(text).then(() => {
+        const original = el.innerHTML;
+        el.innerHTML = "CODE COPIED!";
+        el.style.color = "var(--gold)";
+        el.style.borderColor = "var(--gold)";
+        setTimeout(() => { el.innerHTML = original; el.style.color = ""; el.style.borderColor = ""; }, 2000);
+    });
+}
+</script>
 </body>
 </html>

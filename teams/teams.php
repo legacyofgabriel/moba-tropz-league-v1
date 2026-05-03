@@ -20,28 +20,58 @@ $tournament_id = intval($_SESSION['active_tournament']);
 // LOGIC: DELETE TEAM/PLAYER (Same as before)
 if (isset($_GET['delete_team_id'])) {
     $tid = intval($_GET['delete_team_id']);
-    $team_data = $conn->query("SELECT logo_path FROM teams WHERE id = $tid")->fetch_assoc();
+    $stmt = $conn->prepare("SELECT logo_path FROM teams WHERE id = ?");
+    $stmt->bind_param("i", $tid);
+    $stmt->execute();
+    $team_data = $stmt->get_result()->fetch_assoc();
     delete_team_logo_file($team_data['logo_path'] ?? null);
 
-    $photo_res = $conn->query("SELECT photo_path FROM players WHERE team_id = $tid");
+    $stmt = $conn->prepare("SELECT photo_path FROM players WHERE team_id = ?");
+    $stmt->bind_param("i", $tid);
+    $stmt->execute();
+    $photo_res = $stmt->get_result();
     while($photo = $photo_res->fetch_assoc()) {
         delete_player_photo_file($photo['photo_path'] ?? null);
     }
     
-    $conn->query("DELETE FROM player_match_stats WHERE tournament_id = $tournament_id AND player_id IN (SELECT id FROM players WHERE team_id = $tid)");
-    $conn->query("DELETE FROM standings WHERE team_id = $tid AND tournament_id = $tournament_id");
-    $conn->query("DELETE FROM players WHERE team_id = $tid AND tournament_id = $tournament_id");
-    $conn->query("DELETE FROM teams WHERE id = $tid AND tournament_id = $tournament_id");
+    $stmt1 = $conn->prepare("DELETE FROM player_match_stats WHERE tournament_id = ? AND player_id IN (SELECT id FROM players WHERE team_id = ?)");
+    $stmt1->bind_param("ii", $tournament_id, $tid);
+    $stmt1->execute();
+
+    $stmt2 = $conn->prepare("DELETE FROM standings WHERE team_id = ? AND tournament_id = ?");
+    $stmt2->bind_param("ii", $tid, $tournament_id);
+    $stmt2->execute();
+
+    $stmt3 = $conn->prepare("DELETE FROM players WHERE team_id = ? AND tournament_id = ?");
+    $stmt3->bind_param("ii", $tid, $tournament_id);
+    $stmt3->execute();
+
+    $stmt4 = $conn->prepare("DELETE FROM teams WHERE id = ? AND tournament_id = ?");
+    $stmt4->bind_param("ii", $tid, $tournament_id);
+    $stmt4->execute();
     
     header("Location: teams.php"); exit();
 }
 if (isset($_GET['delete_player_id'])) {
     $pid = intval($_GET['delete_player_id']);
-    $photo = $conn->query("SELECT photo_path FROM players WHERE id = $pid AND tournament_id = $tournament_id")->fetch_assoc();
+    $stmt = $conn->prepare("SELECT photo_path FROM players WHERE id = ? AND tournament_id = ?");
+    $stmt->bind_param("ii", $pid, $tournament_id);
+    $stmt->execute();
+    $photo = $stmt->get_result()->fetch_assoc();
     delete_player_photo_file($photo['photo_path'] ?? null);
-    $conn->query("DELETE FROM player_match_stats WHERE player_id = $pid AND tournament_id = $tournament_id");
-    $conn->query("UPDATE matches SET mvp_player_id = NULL WHERE mvp_player_id = $pid AND tournament_id = $tournament_id");
-    $conn->query("DELETE FROM players WHERE id = $pid AND tournament_id = $tournament_id");
+
+    $stmt1 = $conn->prepare("DELETE FROM player_match_stats WHERE player_id = ? AND tournament_id = ?");
+    $stmt1->bind_param("ii", $pid, $tournament_id);
+    $stmt1->execute();
+
+    $stmt2 = $conn->prepare("UPDATE matches SET mvp_player_id = NULL WHERE mvp_player_id = ? AND tournament_id = ?");
+    $stmt2->bind_param("ii", $pid, $tournament_id);
+    $stmt2->execute();
+
+    $stmt3 = $conn->prepare("DELETE FROM players WHERE id = ? AND tournament_id = ?");
+    $stmt3->bind_param("ii", $pid, $tournament_id);
+    $stmt3->execute();
+
     header("Location: teams.php"); exit();
 }
 
@@ -155,9 +185,7 @@ $teams = $conn->query("SELECT * FROM teams WHERE tournament_id=$tournament_id");
 
                         <!-- MANAGEMENT ACTIONS -->
                         <div class="manage-bar" style="display: flex; gap: 10px; margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--border);">
-                            <a href="team_profile.php?id=<?= $team['id'] ?>" class="table-action" style="border-color: var(--gold); color: var(--gold);">VIEW PROFILE</a>
                             <a href="add_player.php?team_id=<?= $team['id'] ?>" class="table-action" style="background:var(--cyan); color:#020617; border:none; padding: 8px 16px;">+ ADD PLAYER</a>
-                            <a href="logo_maker.php?team_name=<?= urlencode($team['name']) ?>" class="table-action muted" style="padding: 8px 16px;">LOGO MAKER</a>
                             <a href="edit_team.php?id=<?= $team['id'] ?>" class="table-action muted" style="padding: 8px 16px;">EDIT TEAM</a>
                             <a href="?delete_team_id=<?= $team['id'] ?>" class="table-action muted" style="padding: 8px 16px; color: var(--danger); border-color: rgba(248,113,113,0.2);" onclick="return confirm('Delete whole team?')">DELETE SQUAD</a>
                         </div>

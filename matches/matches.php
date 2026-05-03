@@ -13,16 +13,19 @@ if(!isset($_SESSION['active_tournament'])){
 $tournament_id = intval($_SESSION['active_tournament']);
 $state = getTournamentState($conn, $tournament_id);
 
-$repair = $conn->query("SELECT m.*, t1.name as t1, t2.name as t2 FROM matches m
-                        JOIN teams t1 ON m.team1_id=t1.id
-                        JOIN teams t2 ON m.team2_id=t2.id
-                        WHERE m.tournament_id=$tournament_id AND m.is_locked=1 AND (m.winner_name IS NULL OR m.winner_name = '')");
-while($r = $repair->fetch_assoc()) {
-    $win = ($r['score1'] > $r['score2']) ? $r['t1'] : $r['t2'];
-    $conn->query("UPDATE matches SET winner_name='".mysqli_real_escape_string($conn, $win)."', status='completed' WHERE id=".intval($r['id']));
+// Optimization: Only perform repair if there are actually locked matches missing winner names
+$repair_needed = $conn->query("SELECT id FROM matches WHERE tournament_id=$tournament_id AND is_locked=1 AND (winner_name IS NULL OR winner_name = '') LIMIT 1");
+if($repair_needed->num_rows > 0) {
+    $conn->query("UPDATE matches m
+                  JOIN teams t1 ON m.team1_id = t1.id
+                  JOIN teams t2 ON m.team2_id = t2.id
+                  SET m.winner_name = CASE WHEN m.score1 > m.score2 THEN t1.name ELSE t2.name END, m.status='completed'
+                  WHERE m.tournament_id=$tournament_id AND m.is_locked=1 AND (m.winner_name IS NULL OR m.winner_name = '')");
 }
 
-$matches = $conn->query("SELECT m.*, t1.name as team1, t2.name as team2 FROM matches m
+$matches = $conn->query("SELECT m.*, t1.name as team1, t2.name as team2,
+                         (SELECT COUNT(*) FROM player_match_stats pms WHERE pms.match_id = m.id) as stats_ready
+                         FROM matches m
                          JOIN teams t1 ON m.team1_id = t1.id
                          JOIN teams t2 ON m.team2_id = t2.id
                          WHERE m.tournament_id=$tournament_id AND m.match_type='Round Robin'
@@ -67,9 +70,9 @@ $matches = $conn->query("SELECT m.*, t1.name as team1, t2.name as team2 FROM mat
         </div>
     <?php endif; ?>
 
-    <table class="tournament-table" style="width:100%; border-collapse:separate; border-spacing:0 10px; text-align:center;">
+    <table class="tournament-table" style="width:100%; border-collapse:collapse; text-align:center; border: 1px solid var(--border);">
         <thead>
-            <tr style="color:var(--cyan); text-transform:uppercase; font-size:12px;">
+            <tr style="color:var(--cyan); text-transform:uppercase; font-size:12px; background:#000;">
                 <th>#</th><th>Type</th><th>Blue Side</th><th>Score</th><th>Red Side</th><th>Outcome</th><th>Action</th>
             </tr>
         </thead>
@@ -80,16 +83,16 @@ $matches = $conn->query("SELECT m.*, t1.name as team1, t2.name as team2 FROM mat
                 </tr>
             <?php endif; ?>
             <?php $n=1; while($m = $matches->fetch_assoc()): ?>
-            <tr style="background:rgba(15,23,42,0.7); height:80px;">
+            <tr style="background:rgba(2, 6, 23, 0.5); border-bottom: 1px solid var(--border); height:85px;">
                 <form method="POST" action="update_match.php">
                     <input type="hidden" name="match_id" value="<?= $m['id'] ?>">
                     <td style="font-family:'Rajdhani'; font-size:20px;"><?= $n++ ?></td>
                     <td style="font-size:10px; color:#475569;"><?= strtoupper($m['match_type']) ?></td>
                     <td style="font-weight:700;"><?= strtoupper($m['team1']) ?></td>
-                    <td>
-                        <div style="background:#020617; padding:10px; border-radius:8px; border:1px solid rgba(56,189,248,0.2); display:inline-block;">
+                    <td style="background: #000;">
+                        <div style="padding:10px; border:1px solid var(--cyan); display:inline-block; min-width:100px;">
                             <?php if($m['is_locked']): ?>
-                                <span style="font-family:'Rajdhani'; font-size:22px; color:var(--cyan);"><?= $m['score1'] ?> : <?= $m['score2'] ?></span>
+                                <span style="font-family:'Rajdhani'; font-size:26px; color:var(--cyan); font-weight:800;"><?= $m['score1'] ?> — <?= $m['score2'] ?></span>
                             <?php else: ?>
                                 <input type="number" name="score1" value="0" min="0" max="1" style="width:30px; background:none; border:none; color:#fff; text-align:center; font-weight:900; font-size:18px;">
                                 <span style="color:#475569;">:</span>
@@ -103,7 +106,12 @@ $matches = $conn->query("SELECT m.*, t1.name as team1, t2.name as team2 FROM mat
                         <?php if(!$m['is_locked']): ?>
                             <button type="submit" name="update" class="btn-logout" style="border-color:var(--cyan); color:var(--cyan);">SAVE</button>
                         <?php else: ?>
-                            <a href="input_player_stats.php?match_id=<?= $m['id'] ?>" class="btn-logout" style="border-color:var(--gold); color:var(--gold); text-decoration:none;">STATS</a>
+                            <a href="input_player_stats.php?match_id=<?= $m['id'] ?>" class="btn-logout" 
+                               style="border-color:<?= $m['stats_ready'] > 0 ? 'var(--cyan)' : 'var(--gold)' ?>; 
+                                      color:<?= $m['stats_ready'] > 0 ? 'var(--cyan)' : 'var(--gold)' ?>; 
+                                      text-decoration:none;">
+                                <?= $m['stats_ready'] > 0 ? 'VIEW STATS' : 'ADD STATS' ?>
+                            </a>
                         <?php endif; ?>
                     </td>
                 </form>

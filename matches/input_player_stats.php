@@ -18,10 +18,16 @@ if(isset($_POST['save_stats'])){
     $mvp_id = null;
     $has_real_data = false; // FLAG: Sinisiguro na may ininput na stats
 
+    // Prepared statement for better performance and security
+    $stmt = $conn->prepare("INSERT INTO player_match_stats 
+        (match_id, player_id, tournament_id, hero_name, kills, deaths, assists, hero_damage, tf_participation, total_gold) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE hero_name=?, kills=?, deaths=?, assists=?, hero_damage=?, tf_participation=?, total_gold=?");
+
     // Loop through players of BOTH teams provided in the form
     foreach($_POST['p'] as $pid => $s){
         $pid = intval($pid);
-        $hero = mysqli_real_escape_string($conn, $s['hero']);
+        $hero = trim($s['hero']);
         $k = intval($s['k']); $d = max(0, intval($s['d'])); $a = intval($s['a']);
         $hd = intval($s['hd']); $tg = intval($s['tg']);
         $tf = floatval($s['tf']);
@@ -38,11 +44,8 @@ if(isset($_POST['save_stats'])){
             $mvp_id = $pid;
         }
 
-        // Sinisiguro na ang columns ay tumutugma sa database.sql
-        $conn->query("INSERT INTO player_match_stats 
-            (match_id, player_id, tournament_id, hero_name, kills, deaths, assists, hero_damage, tf_participation, total_gold) 
-            VALUES ($match_id, $pid, $tournament_id, '$hero', $k, $d, $a, $hd, $tf, $tg)
-            ON DUPLICATE KEY UPDATE hero_name='$hero', kills=$k, deaths=$d, assists=$a, hero_damage=$hd, tf_participation=$tf, total_gold=$tg");
+        $stmt->bind_param("iiisiiiddisiiidd", $match_id, $pid, $tournament_id, $hero, $k, $d, $a, $hd, $tf, $tg, $hero, $k, $d, $a, $hd, $tf, $tg);
+        $stmt->execute();
     }
     // MAG-AASSIGN LANG NG MVP KUNG MAY REAL DATA NA NA-INPUT (HINDI PURO 0)
     if($has_real_data && $mvp_id){
@@ -59,12 +62,6 @@ if(isset($_POST['save_stats'])){
     <title>Input Match Stats</title>
     <link rel="stylesheet" href="../dashboard/maindashboard.css">
     <style>
-        body {
-            background: linear-gradient(rgba(2, 6, 23, 0.8), rgba(2, 6, 23, 0.9)), 
-                        url('https://images2.alphacoders.com/105/1059431.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #e2e8f0;
-        }
         .in { width: 55px; background: rgba(0,0,0,0.5); border: 1px solid var(--border); color: #fff; font-size: 11px; padding: 6px; border-radius: 4px; text-align: center; }
     </style>
 </head>
