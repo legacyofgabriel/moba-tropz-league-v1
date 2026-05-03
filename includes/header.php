@@ -3,14 +3,15 @@
 if (!function_exists('render_app_header')) {
     function render_app_header(string $active = 'dashboard', array $actions = []): void
     {
+        $root = "/moba-tropz-league-v1/";
         $nav_items = [
-            'dashboard' => ['label' => 'Dashboard', 'href' => '../dashboard/maindashboard.php'],
-            'teams' => ['label' => 'Teams', 'href' => '../teams/teams.php'],
-            'matches' => ['label' => 'Matches', 'href' => '../matches/matches.php'],
-            'standings' => ['label' => 'Standings', 'href' => '../matches/standings.php'],
-            'logo-maker' => ['label' => 'Logo Maker', 'href' => '../teams/logo_maker.php'],
-            'ai-gen' => ['label' => 'Profile Creator', 'href' => '../teams/prompt_generator.php'],
-            'mvp' => ['label' => 'MVP', 'href' => '../matches/mvp_leaderboard.php'],
+            'dashboard' => ['label' => 'Dashboard', 'href' => $root . 'dashboard/maindashboard.php'],
+            'teams' => ['label' => 'Teams', 'href' => $root . 'teams/teams.php'],
+            'matches' => ['label' => 'Matches', 'href' => $root . 'matches/matches.php'],
+            'standings' => ['label' => 'Standings', 'href' => $root . 'matches/standings.php'],
+            'logo-maker' => ['label' => 'Logo Maker', 'href' => $root . 'teams/logo_maker.php'],
+            'ai-gen' => ['label' => 'Profile Creator', 'href' => $root . 'teams/prompt_generator.php'],
+            'mvp' => ['label' => 'MVP', 'href' => $root . 'matches/mvp_leaderboard.php'],
         ];
         ?>
         <style>
@@ -47,7 +48,7 @@ if (!function_exists('render_app_header')) {
             }
         </style>
         <header class="app-header">
-            <a href="../dashboard/maindashboard.php" class="app-brand" aria-label="37Y Tournament Maker dashboard">
+            <a href="<?= $root ?>dashboard/maindashboard.php" class="app-brand" aria-label="37Y Tournament Maker dashboard">
                 <span class="brand-mark">37Y</span>
                 <span class="brand-text" style="font-family:'Space Grotesk', sans-serif; font-weight:700; letter-spacing:-0.5px; font-size:20px; color:#fff;">37Y <strong style="color:var(--cyan); font-weight:500;">TOURNAMENT MAKER</strong></span>
             </a>
@@ -78,7 +79,7 @@ if (!function_exists('render_app_header')) {
                         </a>
                     <?php endif; ?>
                 <?php endforeach; ?>
-                <a href="../auth/logout.php" class="app-action logout">Logout</a>
+                <a href="<?= $root ?>auth/logout.php" class="app-action logout">Logout</a>
             </div>
         </header>
         <?php

@@ -70,7 +70,6 @@ $t_info = $t_res->fetch_assoc();
             transition: 0.5s;
         }
         .mockup-ign { font-family: 'Rajdhani'; font-weight: 800; font-size: 14px; color: #fff; margin-top: 40px; }
-        .mockup-role { font-size: 9px; color: var(--cyan); font-weight: 700; text-transform: uppercase; margin-top: 2px; }
         .mockup-team { font-size: 8px; color: var(--gold); position: absolute; bottom: 20px; text-transform: uppercase; }
         .mockup-logo { width: 30px; height: 30px; border: 1px dashed var(--cyan); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 6px; }
         
@@ -127,7 +126,6 @@ $t_info = $t_res->fetch_assoc();
             border-radius: 12px;
             color: #fff;
             font-size: 14px;
-            text-transform: uppercase;
             transition: 0.3s;
         }
         select:focus, input:focus {
@@ -196,7 +194,6 @@ $t_info = $t_res->fetch_assoc();
             <div class="mockup-player" id="mockupBody">
                 <div class="mockup-logo" id="mockupLogoCircle">LOGO</div>
                 <div class="mockup-ign" id="mockupIGNText">IGN</div>
-                <div class="mockup-role" id="mockupRoleText">ROLE</div>
                 <div class="mockup-team" id="mockupTeamText">TEAM NAME</div>
             </div>
             <div class="poster-overlay"><?= strtoupper($t_info['name'] ?? 'TROPZ LEAGUE') ?></div>
@@ -206,56 +203,56 @@ $t_info = $t_res->fetch_assoc();
             <div class="form-group">
                 <label>View Type</label>
                 <select id="view_type" onchange="updateMockup()">
-                    <option value="all views">ALL VIEWS (3-WAY MULTI-VIEW)</option>
-                    <option value="front view">FRONT VIEW (CHEST FOCUS)</option>
-                    <option value="back view">BACK VIEW (IGN FOCUS)</option>
-                    <option value="left side profile">LEFT SIDE PROFILE</option>
-                    <option value="right side profile">RIGHT SIDE PROFILE</option>
-                    <option value="cinematic low angle">CINEMATIC LOW ANGLE</option>
+                    <option value="all views">All Views (3-Way Multi-View)</option>
+                    <option value="front view">Front View (Chest Focus)</option>
+                    <option value="back view">Back View (IGN Focus)</option>
+                    <option value="left side profile">Left Side Profile</option>
+                    <option value="right side profile">Right Side Profile</option>
+                    <option value="cinematic low angle">Cinematic Low Angle</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Pro Player Pose</label>
                 <select id="pose">
-                    <option value="standing with arms crossed and a confident smirk">1. CONFIDENT STANCE (ARMS CROSSED)</option>
-                    <option value="sitting in a high-end gaming chair, focused on a smartphone screen">2. IN-GAME FOCUS (SMARTPHONE)</option>
-                    <option value="aggressive battle stance, one hand on hip, cinematic focus">5. BATTLE READY STANCE</option>
-                    <option value="adjusting gaming glasses with a sharp look">6. ADJUSTING GLASSES</option>
-                    <option value="leaning against a neon-lit wall, cool expression">7. LEANING AGAINST NEON WALL</option>
-                    <option value="holding a team flag over shoulders">8. TEAM FLAG CAPE</option>
-                    <option value="dynamic walking towards the camera, motion blur background">9. DYNAMIC WALK</option>
-                    <option value="sitting on the edge of eSports stage, looking at hands">10. PRE-GAME MEDITATION</option>
-                    <option value="pointing finger at the camera with a playful wink">11. POINTING AT CAMERA</option>
-                    <option value="looking over the shoulder with a serious gaze">12. OVER-THE-SHOULDER LOOK</option>
-                    <option value="hands in hoodie pockets, street-style gaming look">13. HANDS IN POCKETS</option>
-                    <option value="holding a smartphone horizontally with dual cooling fans attached">14. PRO GAMING GRIP</option>
-                    <option value="clenched fist over heart, pledge of loyalty">15. HEART PLEDGE</option>
-                    <option value="shushing the crowd with a finger to the lips">16. THE 'SILENCE' GESTURE</option>
-                    <option value="sitting cross-legged on the floor, chill gamer vibe">17. CHILL FLOOR SIT</option>
-                    <option value="giving a thumbs up to the crowd">18. PRO THUMBS UP</option>
-                    <option value="holding a gaming headset to one ear, listening intensely">19. COMM CHECK POSE</option>
+                    <option value="standing with arms crossed and a confident smirk">1. Confident Stance (Arms Crossed)</option>
+                    <option value="sitting in a high-end gaming chair, focused on a smartphone screen">2. In-Game Focus (Smartphone)</option>
+                    <option value="aggressive battle stance, one hand on hip, cinematic focus">5. Battle Ready Stance</option>
+                    <option value="adjusting gaming glasses with a sharp look">6. Adjusting Glasses</option>
+                    <option value="leaning against a neon-lit wall, cool expression">7. Leaning Against Neon Wall</option>
+                    <option value="holding a team flag over shoulders">8. Team Flag Cape</option>
+                    <option value="dynamic walking towards the camera, motion blur background">9. Dynamic Walk</option>
+                    <option value="sitting on the edge of eSports stage, looking at hands">10. Pre-game Meditation</option>
+                    <option value="pointing finger at the camera with a playful wink">11. Pointing at Camera</option>
+                    <option value="looking over the shoulder with a serious gaze">12. Over-the-shoulder Look</option>
+                    <option value="hands in hoodie pockets, street-style gaming look">13. Hands in Pockets</option>
+                    <option value="holding a smartphone horizontally with dual cooling fans attached">14. Pro Gaming Grip</option>
+                    <option value="clenched fist over heart, pledge of loyalty">15. Heart Pledge</option>
+                    <option value="shushing the crowd with a finger to the lips">16. The 'Silence' Gesture</option>
+                    <option value="sitting cross-legged on the floor, chill gamer vibe">17. Chill Floor Sit</option>
+                    <option value="giving a thumbs up to the crowd">18. Pro Thumbs Up</option>
+                    <option value="holding a gaming headset to one ear, listening intensely">19. Comm Check Pose</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Subjects (Takes)</label>
                 <select id="takes">
-                    <option value="single player">SINGLE PLAYER (1 TAKE)</option>
-                    <option value="duo players, back to back">DUO (2 TAKES)</option>
-                    <option value="trio of players in a triangle formation">TRIO (3 TAKES)</option>
-                    <option value="squad of 4 players">SQUAD (4 TAKES)</option>
-                    <option value="full team of 5 players in a cinematic lineup">FULL TEAM (5 TAKES)</option>
-                    <option value="large group of 10 eSports players, championship celebration">GRAND FINALE (10 TAKES)</option>
+                    <option value="single player">Single Player (1 Take)</option>
+                    <option value="duo players, back to back">Duo (2 Takes)</option>
+                    <option value="trio of players in a triangle formation">Trio (3 Takes)</option>
+                    <option value="squad of 4 players">Squad (4 Takes)</option>
+                    <option value="full team of 5 players in a cinematic lineup">Full Team (5 Takes)</option>
+                    <option value="large group of 10 eSports players, championship celebration">Grand Finale (10 Takes)</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Aspect Ratio</label>
                 <select id="aspect_ratio">
-                    <option value="--ar 3:4">3:4 (PORTRAIT/MOBILE)</option>
-                    <option value="--ar 9:16">9:16 (TIKTOK/REELS)</option>
-                    <option value="--ar 16:9">16:9 (WIDESCREEN/YOUTUBE)</option>
-                    <option value="--ar 1:1">1:1 (SQUARE/POST)</option>
-                    <option value="--ar 4:5">4:5 (INSTAGRAM PORTRAIT)</option>
-                    <option value="--ar 2:3">2:3 (POSTER STANDARD)</option>
+                    <option value="--ar 3:4">3:4 (Portrait/Mobile)</option>
+                    <option value="--ar 9:16">9:16 (TikTok/Reels)</option>
+                    <option value="--ar 16:9">16:9 (Widescreen/YouTube)</option>
+                    <option value="--ar 1:1">1:1 (Square/Post)</option>
+                    <option value="--ar 4:5">4:5 (Instagram Portrait)</option>
+                    <option value="--ar 2:3">2:3 (Poster Standard)</option>
                 </select>
             </div>
         </div>
@@ -264,76 +261,76 @@ $t_info = $t_res->fetch_assoc();
             <div class="form-group">
                 <label>Jersey Concept</label>
                 <select id="jersey">
-                    <option value="sleek futuristic techwear jersey with glowing LED circuits">1. FUTURISTIC TECHWEAR (GLOW)</option>
-                    <option value="minimalist modern eSports jersey with geometric matte patterns">2. MINIMALIST GEOMETRIC</option>
-                    <option value="classic breathable athletic mesh jersey with team patches">3. CLASSIC PRO ATHLETE MESH</option>
-                    <option value="cyberpunk street-style gaming hoodie with team branding">4. CYBERPUNK HOODIE</option>
-                    <option value="carbon fiber textured compression jersey">5. CARBON FIBER COMPRESSION</option>
-                    <option value="gold-embossed premium silk gaming jersey">6. GOLD-EMBOSSED SILK</option>
-                    <option value="holographic reflective material jersey">7. HOLOGRAPHIC REFLECTIVE</option>
-                    <option value="sleeveless combat-style gaming jersey">8. SLEEVELESS COMBAT</option>
-                    <option value="asymmetrical split-color design jersey">9. ASYMMETRICAL SPLIT</option>
-                    <option value="retro 90s vintage eSports windbreaker">10. RETRO WINDBREAKER</option>
-                    <option value="high-collar tactical gaming suit">11. HIGH-COLLAR TACTICAL</option>
-                    <option value="liquid-metal finish metallic jersey">12. LIQUID METAL METALLIC</option>
-                    <option value="digital camouflage pattern eSports jersey">13. DIGITAL CAMO</option>
-                    <option value="honeycomb weave breathable pro jersey">14. HONEYCOMB WEAVE</option>
-                    <option value="bio-luminescent organic fiber jersey">15. BIO-LUMINESCENT</option>
-                    <option value="velvet texture royal gaming robe-style jersey">16. ROYAL VELVET JERSEY</option>
-                    <option value="oversized urban streetwear gaming jersey">17. URBAN OVERSIZED</option>
-                    <option value="neon-piped nocturnal gaming jersey">18. NEON-PIPED BLACK</option>
-                    <option value="gradient-fused aero-dry jersey">19. AERO-DRY GRADIENT</option>
-                    <option value="cyber-samurai armored plated jersey">20. ARMORED CYBER-SAMURAI</option>
+                    <option value="sleek futuristic techwear jersey with glowing LED circuits">1. Futuristic Techwear (Glow)</option>
+                    <option value="minimalist modern eSports jersey with geometric matte patterns">2. Minimalist Geometric</option>
+                    <option value="classic breathable athletic mesh jersey with team patches">3. Classic Pro Athlete Mesh</option>
+                    <option value="cyberpunk street-style gaming hoodie with team branding">4. Cyberpunk Hoodie</option>
+                    <option value="carbon fiber textured compression jersey">5. Carbon Fiber Compression</option>
+                    <option value="gold-embossed premium silk gaming jersey">6. Gold-Embossed Silk</option>
+                    <option value="holographic reflective material jersey">7. Holographic Reflective</option>
+                    <option value="sleeveless combat-style gaming jersey">8. Sleeveless Combat</option>
+                    <option value="asymmetrical split-color design jersey">9. Asymmetrical Split</option>
+                    <option value="retro 90s vintage eSports windbreaker">10. Retro Windbreaker</option>
+                    <option value="high-collar tactical gaming suit">11. High-Collar Tactical</option>
+                    <option value="liquid-metal finish metallic jersey">12. Liquid Metal Metallic</option>
+                    <option value="digital camouflage pattern eSports jersey">13. Digital Camo</option>
+                    <option value="honeycomb weave breathable pro jersey">14. Honeycomb Weave</option>
+                    <option value="bio-luminescent organic fiber jersey">15. Bio-Luminescent</option>
+                    <option value="velvet texture royal gaming robe-style jersey">16. Royal Velvet Jersey</option>
+                    <option value="oversized urban streetwear gaming jersey">17. Urban Oversized</option>
+                    <option value="neon-piped nocturnal gaming jersey">18. Neon-Piped Black</option>
+                    <option value="gradient-fused aero-dry jersey">19. Aero-Dry Gradient</option>
+                    <option value="cyber-samurai armored plated jersey">20. Armored Cyber-Samurai</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Theme Colors</label>
                 <select id="colors">
-                    <option value="Cyan, Gold, and Obsidian Black">1. CYAN, GOLD, BLACK</option>
-                    <option value="Electric Purple, Magenta, and Deep Space Grey">2. PURPLE, MAGENTA, GREY</option>
-                    <option value="Neon Green, Carbon Grey, and White">3. GREEN, GREY, WHITE</option>
-                    <option value="Deep Crimson, Metallic Silver, and Jet Black">4. CRIMSON, SILVER, BLACK</option>
-                    <option value="Royal Blue, Bright Orange, and Charcoal">5. BLUE, ORANGE, CHARCOAL</option>
-                    <option value="Rose Gold, Pastel Pink, and Dark Slate">6. ROSE GOLD, PINK, SLATE</option>
-                    <option value="Acid Yellow, Toxic Green, and Pitch Black">7. YELLOW, GREEN, BLACK</option>
-                    <option value="Midnight Navy, Sky Blue, and Pearl White">8. NAVY, SKY, WHITE</option>
-                    <option value="Teal, Copper, and Off-White">9. TEAL, COPPER, OFF-WHITE</option>
-                    <option value="Emerald Green, Gold, and Midnight Black">10. EMERALD, GOLD, BLACK</option>
-                    <option value="Ruby Red, Onyx Black, and Platinum Silver">11. RUBY, ONYX, PLATINUM</option>
-                    <option value="Sapphire Blue, Frost White, and Graphite Grey">12. SAPPHIRE, WHITE, GREY</option>
-                    <option value="Sunset Orange, Red-Violet, and Dark Purple">13. SUNSET, VIOLET, PURPLE</option>
-                    <option value="Military Tan, Sand, and Olive Drab">14. TAN, SAND, OLIVE</option>
-                    <option value="Cyberpunk Pink, Electric Blue, and Ultraviolet">15. PINK, BLUE, UV</option>
-                    <option value="Monochrome Black, Matte Grey, and Glossy White">16. BLACK, GREY, WHITE</option>
-                    <option value="Frost Blue, Ice White, and Steel Grey">17. ICE BLUE, WHITE, STEEL</option>
-                    <option value="Burgundy, Bronze, and Cream">18. BURGUNDY, BRONZE, CREAM</option>
-                    <option value="Lava Orange, Ash Grey, and Sulfur Yellow">19. LAVA, ASH, YELLOW</option>
-                    <option value="Deep Sea Teal, Coral, and Dark Navy">20. TEAL, CORAL, NAVY</option>
+                    <option value="Cyan, Gold, and Obsidian Black">1. Cyan, Gold, Black</option>
+                    <option value="Electric Purple, Magenta, and Deep Space Grey">2. Purple, Magenta, Grey</option>
+                    <option value="Neon Green, Carbon Grey, and White">3. Green, Grey, White</option>
+                    <option value="Deep Crimson, Metallic Silver, and Jet Black">4. Crimson, Silver, Black</option>
+                    <option value="Royal Blue, Bright Orange, and Charcoal">5. Blue, Orange, Charcoal</option>
+                    <option value="Rose Gold, Pastel Pink, and Dark Slate">6. Rose Gold, Pink, Slate</option>
+                    <option value="Acid Yellow, Toxic Green, and Pitch Black">7. Yellow, Green, Black</option>
+                    <option value="Midnight Navy, Sky Blue, and Pearl White">8. Navy, Sky, White</option>
+                    <option value="Teal, Copper, and Off-White">9. Teal, Copper, Off-White</option>
+                    <option value="Emerald Green, Gold, and Midnight Black">10. Emerald, Gold, Black</option>
+                    <option value="Ruby Red, Onyx Black, and Platinum Silver">11. Ruby, Onyx, Platinum</option>
+                    <option value="Sapphire Blue, Frost White, and Graphite Grey">12. Sapphire, White, Grey</option>
+                    <option value="Sunset Orange, Red-Violet, and Dark Purple">13. Sunset, Violet, Purple</option>
+                    <option value="Military Tan, Sand, and Olive Drab">14. Tan, Sand, Olive</option>
+                    <option value="Cyberpunk Pink, Electric Blue, and Ultraviolet">15. Pink, Blue, UV</option>
+                    <option value="Monochrome Black, Matte Grey, and Glossy White">16. Black, Grey, White</option>
+                    <option value="Frost Blue, Ice White, and Steel Grey">17. Ice Blue, White, Steel</option>
+                    <option value="Burgundy, Bronze, and Cream">18. Burgundy, Bronze, Cream</option>
+                    <option value="Lava Orange, Ash Grey, and Sulfur Yellow">19. Lava, Ash, Yellow</option>
+                    <option value="Deep Sea Teal, Coral, and Dark Navy">20. Teal, Coral, Navy</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Backdrop / Scenery</label>
                 <select id="env">
-                    <option value="blurred pro eSports arena stage, bright spotlights and neon atmosphere">1. TOURNAMENT ARENA STAGE</option>
-                    <option value="a dark futuristic high-tech training room with cinematic rim lighting">2. CYBER GAMING STUDIO</option>
-                    <option value="fantasy battlefield scenery with magical energy swirls">3. FANTASY BATTLEFIELD</option>
-                    <option value="clean professional studio background with soft color gradient">4. CLEAN PRO STUDIO</option>
-                    <option value="cyberpunk city rooftop overlooking a neon metropolis at night">5. CYBERPUNK ROOFTOP</option>
-                    <option value="ancient temple ruins in the Land of Dawn with floating crystals">6. ANCIENT RUINS</option>
-                    <option value="floating island in the sky with magical waterfalls">7. FLOATING SKY ISLAND</option>
-                    <option value="digital void with binary codes and data streams floating around">8. DIGITAL DATA VOID</option>
-                    <option value="mist-covered enchanted forest with glowing flora">9. ENCHANTED FOREST</option>
-                    <option value="sci-fi spaceship bridge with planetary view from windows">10. SPACESHIP BRIDGE</option>
-                    <option value="zen garden with cherry blossoms and traditional bridges">11. ZEN GARDEN</option>
-                    <option value="undersea research base with giant sea creatures outside the glass">12. UNDERSEA BASE</option>
-                    <option value="abandoned industrial warehouse with graffiti and mood lighting">13. INDUSTRIAL WAREHOUSE</option>
-                    <option value="volcanic crag with flowing lava and intense orange glow">14. VOLCANIC CRAG</option>
-                    <option value="rainy street crossing in futuristic Tokyo style">15. RAINY CYBER CITY</option>
-                    <option value="golden hour beach sunset with palm tree silhouettes">16. GOLDEN HOUR BEACH</option>
-                    <option value="high-speed maglev train interior with motion-blurred scenery">17. MAGLEV TRAIN</option>
-                    <option value="steampunk workshop with brass gears and steam pipes">18. STEAMPUNK WORKSHOP</option>
-                    <option value="minimalist white infinite void with soft geometric shadows">19. INFINITE WHITE STUDIO</option>
-                    <option value="crystal cave with gigantic amethyst formations">20. CRYSTAL AMETHYST CAVE</option>
+                    <option value="blurred pro eSports arena stage, bright spotlights and neon atmosphere">1. Tournament Arena Stage</option>
+                    <option value="a dark futuristic high-tech training room with cinematic rim lighting">2. Cyber Gaming Studio</option>
+                    <option value="fantasy battlefield scenery with magical energy swirls">3. Fantasy Battlefield</option>
+                    <option value="clean professional studio background with soft color gradient">4. Clean Pro Studio</option>
+                    <option value="cyberpunk city rooftop overlooking a neon metropolis at night">5. Cyberpunk Rooftop</option>
+                    <option value="ancient temple ruins in the Land of Dawn with floating crystals">6. Ancient Ruins</option>
+                    <option value="floating island in the sky with magical waterfalls">7. Floating Sky Island</option>
+                    <option value="digital void with binary codes and data streams floating around">8. Digital Data Void</option>
+                    <option value="mist-covered enchanted forest with glowing flora">9. Enchanted Forest</option>
+                    <option value="sci-fi spaceship bridge with planetary view from windows">10. Spaceship Bridge</option>
+                    <option value="zen garden with cherry blossoms and traditional bridges">11. Zen Garden</option>
+                    <option value="undersea research base with giant sea creatures outside the glass">12. Undersea Base</option>
+                    <option value="abandoned industrial warehouse with graffiti and mood lighting">13. Industrial Warehouse</option>
+                    <option value="volcanic crag with flowing lava and intense orange glow">14. Volcanic Crag</option>
+                    <option value="rainy street crossing in futuristic Tokyo style">15. Rainy Cyber City</option>
+                    <option value="golden hour beach sunset with palm tree silhouettes">16. Golden Hour Beach</option>
+                    <option value="high-speed maglev train interior with motion-blurred scenery">17. Maglev Train</option>
+                    <option value="steampunk workshop with brass gears and steam pipes">18. Steampunk Workshop</option>
+                    <option value="minimalist white infinite void with soft geometric shadows">19. Infinite White Studio</option>
+                    <option value="crystal cave with gigantic amethyst formations">20. Crystal Amethyst Cave</option>
                 </select>
             </div>
         </div>
@@ -341,17 +338,6 @@ $t_info = $t_res->fetch_assoc();
             <div class="form-group">
                 <label>Player IGN</label>
                 <input type="text" id="player_ign" placeholder="e.g. TROPZ" onkeyup="updateMockup()" required>
-            </div>
-            <div class="form-group">
-                <label>Player Role</label>
-                <select id="player_role" onchange="updateMockup()">
-                    <option value="EXP Lane">EXP LANE</option>
-                    <option value="Jungler">JUNGLER</option>
-                    <option value="Mid Lane">MID LANE</option>
-                    <option value="Gold Lane">GOLD LANE</option>
-                    <option value="Roamer">ROAMER</option>
-                    <option value="Coach">COACH</option>
-                </select>
             </div>
             <div class="form-group">
                 <label>Team Name</label>
@@ -394,12 +380,10 @@ function previewLogo(event) {
 function updateMockup() {
     const view = document.getElementById('view_type').value;
     const ign = document.getElementById('player_ign').value || "IGN";
-    const role = document.getElementById('player_role').value;
     const team = document.getElementById('team_name').value || "TEAM NAME";
     const mockupBody = document.getElementById('mockupBody');
     const mockupLogo = document.getElementById('mockupLogoCircle');
     const mockupIGN = document.getElementById('mockupIGNText');
-    const mockupRole = document.getElementById('mockupRoleText');
     
     mockupIGN.innerText = ign.toUpperCase();
     document.getElementById('mockupTeamText').innerText = team.toUpperCase();
@@ -407,17 +391,13 @@ function updateMockup() {
     if(view === 'back view') {
         mockupBody.style.transform = "rotateY(180deg)";
         mockupIGN.style.transform = "rotateY(180deg)";
-        mockupRole.style.transform = "rotateY(180deg)";
         mockupIGN.style.marginTop = "30px";
         mockupLogo.style.display = "none";
-        mockupRole.innerText = ""; // Optional: itago ang role sa likod
     } else {
         mockupBody.style.transform = "rotateY(0deg)";
         mockupIGN.style.transform = "rotateY(0deg)";
-        mockupRole.style.transform = "rotateY(0deg)";
         mockupIGN.style.marginTop = "40px";
         mockupLogo.style.display = "flex";
-        mockupRole.innerText = role.toUpperCase();
     }
 }
 
@@ -427,7 +407,6 @@ function generatePrompt() {
     const colors = document.getElementById('colors').value;
     const env = document.getElementById('env').value;
     const ign = document.getElementById('player_ign').value || "PLAYER";
-    const role = document.getElementById('player_role').value;
     const team = document.getElementById('team_name').value || "TEAM NAME";
     const view = document.getElementById('view_type').value;
     const takes = document.getElementById('takes').value;
@@ -470,27 +449,22 @@ function generatePrompt() {
         }
     }
 
-    const ai_prompt_text = `A high-resolution professional eSports ${takes} portrait poster for the tournament "${t_name}", featuring a ${role} player, character ${pose}. ` + 
+    const ai_prompt_text = `A high-resolution professional eSports ${takes} portrait poster for "${t_name}", character ${pose}. ` + 
         `${viewInstructions} The players are wearing ${jersey} in ${colors} theme. ` +
         `Background: ${env}. ` +
-        `Poster-ready layout, cinematic lighting, 8k, hyper-realistic, highly detailed texture, professional eSports photography style, commercial vibe ${ar}`;
+        `Poster-ready layout, cinematic lighting, 8k, hyper-realistic, highly detailed texture, eSports arena commercial vibe ${ar}`;
 
     const resultJson = {
         "request_type": "Pro eSports Player Art",
         "player_details": {
             "ign": ign,
-            "role": role,
-            "team": team,
-            "tournament": t_name
+            "team": team
         },
         "visual_config": {
             "pose": pose,
             "jersey_style": jersey,
             "palette": colors,
-            "environment": env,
-            "aspect_ratio": ar,
-            "view_mode": view,
-            "subjects": takes
+            "environment": env
         },
         "design_specs": designSpecs,
         "final_ai_prompt": ai_prompt_text
@@ -500,7 +474,6 @@ function generatePrompt() {
     document.getElementById('resultContainer').style.display = 'block';
     document.getElementById('resultContainer').scrollIntoView({ behavior: 'smooth' });
 }
-
 function copyPrompt() {
     const text = document.getElementById('generatedPrompt').innerText;
     navigator.clipboard.writeText(text).then(() => {
