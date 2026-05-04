@@ -4,6 +4,8 @@ if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include("../auth/auth_check.php");
 include("../includes/header.php");
 include("../includes/footer.php");
+include("../includes/player_avatar.php");
+include("../includes/player_photos.php");
 
 if(!isset($_SESSION['active_tournament'])){
     header("Location: ../dashboard/maindashboard.php");
@@ -12,178 +14,107 @@ if(!isset($_SESSION['active_tournament'])){
 
 $tournament_id = intval($_SESSION['active_tournament']);
 
-$t_info = $conn->query("SELECT name FROM tournaments WHERE id = $tournament_id")->fetch_assoc();
-
-// Query para sa lahat ng players at MVP count nila
-$mvp_query = $conn->query("
-    SELECT p.id, p.name, p.role, p.photo_path, t.name as team_name, t.short_name,
-           COUNT(m.mvp_player_id) as total_mvps
+// Fetch Top Operatives by KDA (Total Kills + Total Assists) / Greatest(1, Total Deaths)
+$stmt = $conn->prepare("
+    SELECT p.id, p.name, p.role, p.photo_path, t.short_name, t.name as team_name,
+           SUM(pms.kills) as total_k, SUM(pms.deaths) as total_d, SUM(pms.assists) as total_a,
+           SUM(pms.hero_damage) as total_dmg, COUNT(pms.id) as matches_played
     FROM players p
     JOIN teams t ON p.team_id = t.id
-    LEFT JOIN matches m ON p.id = m.mvp_player_id AND m.tournament_id = p.tournament_id
-    WHERE p.tournament_id = $tournament_id
+    JOIN player_match_stats pms ON p.id = pms.player_id
+    WHERE p.tournament_id = ?
     GROUP BY p.id
-    ORDER BY total_mvps DESC, p.name ASC
+    HAVING matches_played > 0
+    ORDER BY (SUM(pms.kills) + SUM(pms.assists)) / GREATEST(1, SUM(pms.deaths)) DESC
+    LIMIT 15
 ");
-
-include_once("../includes/player_avatar.php");
-include_once("../includes/player_photos.php");
-
-$all_players = [];
-if ($mvp_query) while($row = $mvp_query->fetch_assoc()) {
-    $all_players[] = $row;
-}
+$stmt->bind_param("i", $tournament_id);
+$stmt->execute();
+$leaders = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MVP Leaderboard — MOBA TROPZ</title>
     <link rel="stylesheet" href="../dashboard/maindashboard.css">
     <style>
-        .wrapper { 
-            max-width: 1000px; 
-            margin: 0 auto; 
-            padding: 60px 20px;
-            text-align: center;
+        .leader-row { height: 75px; transition: 0.3s; }
+        .leader-row:hover { background: rgba(0, 242, 255, 0.04) !important; }
+        .rank-badge { 
+            width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+            background: rgba(148, 163, 184, 0.1); border-radius: 6px; font-family: 'Rajdhani'; font-weight: 800;
         }
-
-        .section-label {
-            display: inline-block;
-            color: var(--cyan);
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 8px;
-            text-transform: uppercase;
-            margin-bottom: 15px;
-        }
-
-        .tournament-title {
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 56px;
-            font-weight: 700;
-            margin: 0 0 50px 0;
-            text-shadow: 0 0 20px rgba(255,255,255,0.1);
-        }
-
-        /* MVP CARD STYLE */
-        .mvp-card { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid var(--border);
-            border-radius: 16px; 
-            border: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            padding: 20px 35px;
-            transition: 0.3s ease;
-            text-align: left; /* Alignment fix for list items */
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .mvp-card:hover { 
-            transform: scale(1.01) translateX(5px); 
-            background: rgba(30, 41, 59, 0.7);
-            border-color: var(--gold);
-        }
-
-        /* ── TOP 3 ELEVATION ── */
-        .mvp-card.top-rank {
-            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
-            border-width: 2px;
-            margin-bottom: 20px;
-        }
-        .mvp-card.rank-1-card { 
-            border-color: var(--gold); 
-            box-shadow: 0 0 40px rgba(240, 180, 41, 0.1); 
-            padding: 35px 40px; 
-            margin-top: 20px;
-        }
-        .mvp-card.rank-2-card { border-color: #cbd5e1; box-shadow: 0 0 30px rgba(203, 213, 225, 0.05); }
-        .mvp-card.rank-3-card { border-color: #fb923c; box-shadow: 0 0 30px rgba(251, 146, 60, 0.05); }
-
-        .mvp-player-avatar {
-            width: 70px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 12px;
-            border: 2px solid rgba(255,255,255,0.1);
-            margin-right: 15px;
-            background: var(--surface);
-        }
-        
-        .rank { font-family: 'Rajdhani'; font-weight: 700; font-size: 32px; width: 60px; color: #475569; }
-        .rank-1 { color: var(--gold); text-shadow: 0 0 15px rgba(240,180,41,0.6); font-size: 48px; }
-        .rank-2 { color: #cbd5e1; text-shadow: 0 0 10px rgba(203,213,225,0.3); }
-        .rank-3 { color: #fb923c; text-shadow: 0 0 8px rgba(251,146,60,0.3); }
-
-        .player-info { flex-grow: 1; }
-        .p-name { font-size: 20px; font-weight: 800; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
-        .p-team { font-size: 11px; color: var(--cyan); font-weight: 700; text-transform: uppercase; margin-top: 2px; }
-        
-        .mvp-count-box { text-align: center; min-width: 100px; border-left: 1px solid rgba(255,255,255,0.1); padding-left: 20px; }
-        .count-val { font-family: 'Rajdhani'; font-size: 34px; font-weight: 900; color: var(--gold); display: block; line-height: 1; }
-        .count-lab { font-size: 10px; color: var(--muted); font-weight: 800; letter-spacing: 1px; margin-top: 5px; display: block; }
-        
-        /* EMPTY STATE UI */
-        .empty-state-card {
-            background: rgba(15, 23, 42, 0.4);
-            border: 1px dashed rgba(255,255,255,0.1);
-            padding: 60px 40px;
-            border-radius: 20px;
-            display: inline-block;
-            width: 100%;
-            max-width: 500px;
-        }
-        .empty-state-card h3 { color: #fff; margin: 15px 0 5px; font-size: 20px; }
-        .empty-state-card p { color: var(--muted); font-size: 14px; }
+        .rank-1 { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold-glow); }
+        .rank-2 { background: #e2e8f0; color: #000; }
+        .rank-3 { background: #cd7f32; color: #fff; }
+        .kda-val { font-family: 'Space Grotesk'; font-weight: 700; color: var(--cyan); }
     </style>
 </head>
 <body>
-
 <?php render_app_header('mvp'); ?>
 
 <div class="wrapper">
-    <div class="section-label">Tournament MVP Race</div>
-    <h1 class="tournament-title"><?= strtoupper($t_info['name']) ?></h1>
+    <div class="hero" style="text-align: center; padding: 60px;">
+        <div class="hero-label">Tactical Rankings</div>
+        <h1 class="hero-title" style="font-size: 52px;">MVP LEADERBOARD</h1>
+        <div class="hero-meta" style="justify-content: center;">
+            <span>TOP 15 OPERATIVES BY KDA PERFORMANCE</span>
+        </div>
+    </div>
 
-    <?php if(empty($all_players)): ?>
-        <div class="empty-state-card">
-            <div style="font-size: 60px; filter: grayscale(1); opacity: 0.5;">👥</div>
-            <h3>No Players Registered Yet</h3>
-            <p>Register teams and players in the Teams section to see them here.</p>
-            <a href="../teams/teams.php" style="color: var(--cyan); text-decoration:none; font-size:12px; font-weight:700; display:block; margin-top:20px;">GO TO TEAMS →</a>
-        </div>
-    <?php else: ?>
-        <?php 
-        $rank = 0;
-        foreach($all_players as $m): 
-            $rank++;
-            $rank_class = ($rank == 1) ? 'rank-1' : (($rank == 2) ? 'rank-2' : (($rank == 3) ? 'rank-3' : ''));
-            $top_class = ($rank <= 3) ? 'top-rank rank-' . $rank . '-card' : '';
-            $fallback = function_exists('player_avatar_data_uri') ? player_avatar_data_uri($m['name'], $m['role']) : '';
-            $avatar = player_photo_src($m, '../', $fallback);
-    ?>
-        <div class="mvp-card <?= $top_class ?>">
-            <div class="rank <?= $rank_class ?>">#<?= $rank ?></div>
-            <img src="<?= $avatar ?>" alt="<?= htmlspecialchars($m['name']) ?> avatar" class="mvp-player-avatar">
-            <div class="player-info">
-                <div class="p-name"><?= $m['name'] ?> <span style="font-size:12px; color:rgba(255,255,255,0.2); font-weight:400; margin-left:10px;">[<?= $m['role'] ?>]</span></div>
-                <div class="p-team"><?= strtoupper($m['team_name']) ?></div>
-            </div>
-            <div class="mvp-count-box">
-                <span class="count-val"><?= $m['total_mvps'] ?></span>
-                <span class="count-lab">MVP TITLES</span>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    <?php endif; ?>
+    <div class="table-shell">
+        <table class="tournament-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Operative</th>
+                    <th>Squad</th>
+                    <th>Role</th>
+                    <th>Matches</th>
+                    <th>K/D/A</th>
+                    <th>KDA Ratio</th>
+                    <th>Total Damage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach($leaders as $index => $p): 
+                    $kda_ratio = number_format(($p['total_k'] + $p['total_a']) / max(1, $p['total_d']), 2);
+                    $rank = $index + 1;
+                ?>
+                <tr class="leader-row">
+                    <td>
+                        <div class="rank-badge <?= 'rank-'.$rank ?>"><?= $rank ?></div>
+                    </td>
+                    <td>
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <?php $thumb = player_photo_src($p, '../', player_avatar_data_uri($p['name'], $p['role'])); ?>
+                            <img src="<?= $thumb ?>" class="player-avatar-mini" style="width:36px; height:44px;">
+                            <a href="../teams/player_profile.php?id=<?= $p['id'] ?>"
+                               style="color:#fff; text-decoration:none; font-weight:800; font-size:15px;"
+                               onclick="event.stopPropagation()">
+                                <?= strtoupper($p['name']) ?>
+                            </a>
+                        </div>
+                    </td>
+                    <td style="color:var(--cyan); font-weight:700;"><?= $p['short_name'] ?></td>
+                    <td style="font-size:11px; font-weight:800; opacity:0.8;"><?= $p['role'] ?></td>
+                    <td style="font-family:'Rajdhani'; font-weight:700;"><?= $p['matches_played'] ?></td>
+                    <td style="font-size:13px; letter-spacing:1px;">
+                        <?= $p['total_k'] ?> / <span style="color:var(--danger);"><?= $p['total_d'] ?></span> / <?= $p['total_a'] ?>
+                    </td>
+                    <td class="kda-val"><?= $kda_ratio ?></td>
+                    <td style="font-size:12px; opacity:0.7;"><?= number_format($p['total_dmg']) ?></td>
+                </tr>
+                <?php endforeach; ?>
+                <?php if(empty($leaders)): ?>
+                    <tr><td colspan="8" class="empty-cell">No combat data recorded yet.</td></tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php render_app_footer(); ?>
-
 </body>
 </html>

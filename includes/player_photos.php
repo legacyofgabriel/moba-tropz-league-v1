@@ -80,10 +80,19 @@ if (!function_exists('validate_team_logo_upload')) {
     function validate_team_logo_upload(array $file): string
     {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return '';
-        if ($file['size'] > 2 * 1024 * 1024) return 'Team logo must be 2MB or smaller.';
-        $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-        $mime = mime_content_type($file['tmp_name']);
-        return isset($allowed[$mime]) ? '' : 'Logo must be JPG, PNG, or WEBP.';
+        if ($file['error'] !== UPLOAD_ERR_OK) return 'Transmission error (Code: ' . $file['error'] . ')';
+        if ($file['size'] > 5 * 1024 * 1024) return 'Team logo must be 5MB or smaller.';
+
+        // Advanced Detection using finfo
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']);
+
+        $allowed_mimes = [
+            'image/jpeg', 'image/jpg', 'image/png', 
+            'image/x-png', 'image/webp', 'image/gif'
+        ];
+
+        return in_array($mime, $allowed_mimes) ? '' : 'Invalid format: ' . $mime . '. Use JPG or PNG.';
     }
 }
 
@@ -91,11 +100,25 @@ if (!function_exists('save_team_logo_upload')) {
     function save_team_logo_upload(array $file, int $team_id): ?string
     {
         if (($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return null;
-        $ext = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'][mime_content_type($file['tmp_name'])];
+
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($file['tmp_name']);
+
+        // Intelligent extension mapping
+        $ext = 'png';
+        if (str_contains($mime, 'jpeg') || str_contains($mime, 'jpg')) $ext = 'jpg';
+        if (str_contains($mime, 'webp')) $ext = 'webp';
+
         $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'team_logos';
         if (!is_dir($dir)) mkdir($dir, 0775, true);
+        
         $filename = 'team_' . $team_id . '_' . time() . '.' . $ext;
-        return move_uploaded_file($file['tmp_name'], $dir . DIRECTORY_SEPARATOR . $filename) ? 'uploads/team_logos/' . $filename : null;
+        $target = $dir . DIRECTORY_SEPARATOR . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $target)) {
+            return 'uploads/team_logos/' . $filename;
+        }
+        return null;
     }
 }
 

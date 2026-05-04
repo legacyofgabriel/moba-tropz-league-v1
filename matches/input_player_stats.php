@@ -2,6 +2,7 @@
 include("../config/db.php");
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include("../auth/auth_check.php");
+include("../includes/team_photos.php");
 
 if(!isset($_SESSION['active_tournament'])){
     header("Location: ../dashboard/maindashboard.php");
@@ -10,13 +11,21 @@ if(!isset($_SESSION['active_tournament'])){
 
 $match_id = intval($_GET['match_id']);
 $tournament_id = intval($_SESSION['active_tournament']);
-$res = $conn->query("SELECT m.*, t1.name as t1, t2.name as t2 FROM matches m JOIN teams t1 ON m.team1_id=t1.id JOIN teams t2 ON m.team2_id=t2.id WHERE m.id=$match_id");
-$m = $res->fetch_assoc();
+
+$stmt_m = $conn->prepare("SELECT m.*, t1.name as t1, t1.logo_path as logo1, t2.name as t2, t2.logo_path as logo2 FROM matches m JOIN teams t1 ON m.team1_id=t1.id JOIN teams t2 ON m.team2_id=t2.id WHERE m.id = ?");
+$stmt_m->bind_param("i", $match_id);
+$stmt_m->execute();
+$m = $stmt_m->get_result()->fetch_assoc();
+
+// Prepare the player fetch statement for the display loop
+$stmt_p_fetch = $conn->prepare("SELECT id, name, role FROM players WHERE team_id = ?");
 
 if(isset($_POST['save_stats'])){
     $highest_score = -999;
     $mvp_id = null;
     $has_real_data = false; // FLAG: Sinisiguro na may ininput na stats
+
+    $conn->begin_transaction();
 
     // Prepared statement for better performance and security
     $stmt = $conn->prepare("INSERT INTO player_match_stats 
@@ -49,8 +58,14 @@ if(isset($_POST['save_stats'])){
     }
     // MAG-AASSIGN LANG NG MVP KUNG MAY REAL DATA NA NA-INPUT (HINDI PURO 0)
     if($has_real_data && $mvp_id){
-        $conn->query("UPDATE matches SET mvp_player_id = $mvp_id WHERE id = $match_id");
+        $stmt_mvp = $conn->prepare("UPDATE matches SET mvp_player_id = ? WHERE id = ?");
+        $stmt_mvp->bind_param("ii", $mvp_id, $match_id);
+        $stmt_mvp->execute();
     }
+
+    log_tactical_action($conn, $_SESSION['user_id'], $tournament_id, "STATS_ENTRY", "Updated tactical intelligence data for Match ID: " . $match_id);
+    
+    $conn->commit();
 
     header("Location: matches.php?msg=Statistics saved successfully!");
     exit();
@@ -69,8 +84,11 @@ if(isset($_POST['save_stats'])){
 <div class="wrapper">
     <form method="POST">
     <div class="hero" style="padding:20px; text-align:center;"><h2 class="hero-title" style="font-size:20px;">Input Stats: <?= $m['t1'] ?> vs <?= $m['t2'] ?></h2></div>
-    <?php foreach([$m['team1_id'] => $m['t1'], $m['team2_id'] => $m['t2']] as $tid => $name): ?>
-        <div class="section-label" style="margin-top:30px; color:var(--gold);"><?= strtoupper($name) ?></div>
+    <?php foreach([$m['team1_id'] => ['n' => $m['t1'], 'l' => $m['logo1']], $m['team2_id'] => ['n' => $m['t2'], 'l' => $m['logo2']]] as $tid => $team): ?>
+        <div class="section-label" style="margin-top:30px; color:var(--gold); display:flex; align-items:center; gap:12px;">
+            <img src="<?= team_logo_src($team['l'], '../') ?>" style="width:32px; height:32px; object-fit:cover; border-radius:6px; border:1px solid var(--border);">
+            <?= strtoupper($team['n']) ?>
+        </div>
         <div class="nav-card" style="display:block; overflow-x:auto; padding:10px;">
             <table style="width:100%; border-collapse:collapse; text-align:center;">
                 <thead><tr style="color:var(--cyan); font-size:10px;">
@@ -78,7 +96,11 @@ if(isset($_POST['save_stats'])){
                     <th>Hero</th><th>K</th><th>D</th><th>A</th><th>H.Dmg</th><th>TF%</th><th>Gold</th>
                 </tr></thead>
                 <tbody>
-                    <?php $ps = $conn->query("SELECT id, name, role FROM players WHERE team_id=$tid"); while($p = $ps->fetch_assoc()): ?>
+                    <?php 
+                    $stmt_p_fetch->bind_param("i", $tid);
+                    $stmt_p_fetch->execute();
+                    $ps = $stmt_p_fetch->get_result();
+                    while($p = $ps->fetch_assoc()): ?>
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
                         <td style="text-align:left; padding:12px 10px; color:#fff; font-weight:600;"><?= $p['name'] ?></td>
                         <td style="text-align:left; color:var(--gold); font-size:10px; font-weight:800;"><?= $p['role'] ?></td>
@@ -98,5 +120,12 @@ if(isset($_POST['save_stats'])){
     <button type="submit" name="save_stats" class="btn-logout" style="width:100%; margin-top:30px; height:50px; background:var(--cyan); color:#000; font-weight:bold; cursor:pointer;">SAVE STATISTICS & DECLARE MVP</button>
     </form>
 </div>
+<script>
+    // Prevent accidental navigation during heavy data entry
+    window.onbeforeunload = function() {
+        return "Unsaved statistics detected. Abandon transmission?";
+    };
+    document.querySelector('form').onsubmit = function() { window.onbeforeunload = null; };
+</script>
 </body>
 </html>

@@ -1,307 +1,277 @@
 <?php
 include("../config/db.php");
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include("../auth/auth_check.php");
 include("../includes/header.php");
 include("../includes/footer.php");
-include("../includes/player_avatar.php");
-include("../includes/player_photos.php");
+include("../includes/player_photos.php"); // For player_photo_src function
+include("../includes/player_avatar.php"); // For player_avatar_data_uri function
 
-ensure_player_photo_column($conn);
-
-$player_id = intval($_GET['id'] ?? 0);
-$p = $conn->query("SELECT p.*, t.name as team_name, t.short_name
-                   FROM players p
-                   JOIN teams t ON p.team_id = t.id
-                   WHERE p.id = $player_id")->fetch_assoc();
-
-if(!$p) {
+if(!isset($_GET['id'])) {
     header("Location: teams.php");
     exit();
 }
 
-$mvp_count = intval($conn->query("SELECT COUNT(*) AS total FROM matches WHERE mvp_player_id = $player_id")->fetch_assoc()['total']);
+$player_id = intval($_GET['id']);
+if(!isset($_SESSION['active_tournament'])){
+    header("Location: ../dashboard/maindashboard.php");
+    exit();
+}
 
-$stats = $conn->query("SELECT
-        COUNT(*) AS games,
-        COALESCE(SUM(kills), 0) AS kills,
-        COALESCE(SUM(deaths), 0) AS deaths,
-        COALESCE(SUM(assists), 0) AS assists,
-        COALESCE(AVG(hero_damage), 0) AS avg_damage,
-        COALESCE(AVG(total_gold), 0) AS avg_gold,
-        COALESCE(AVG(tf_participation), 0) AS avg_tf
-    FROM player_match_stats
-    WHERE player_id = $player_id")->fetch_assoc();
+$tournament_id = intval($_SESSION['active_tournament']);
 
-$games = intval($stats['games']);
-$kills = intval($stats['kills']);
-$deaths = intval($stats['deaths']);
-$assists = intval($stats['assists']);
-$avg_deaths = $games > 0 ? $deaths / $games : 0;
-$avg_gold = floatval($stats['avg_gold']);
+// Fetch Player Details
+$stmt_p = $conn->prepare("
+    SELECT p.*, t.name as team_name, t.short_name 
+    FROM players p 
+    JOIN teams t ON p.team_id = t.id 
+    WHERE p.id = ? AND p.tournament_id = ?
+");
+$stmt_p->bind_param("ii", $player_id, $tournament_id);
+$stmt_p->execute();
+$player = $stmt_p->get_result()->fetch_assoc();
 
-$kda = $deaths > 0 ? ($kills + $assists) / $deaths : ($kills + $assists);
-$avg_kills = $games > 0 ? $kills / $games : 0;
-$avg_assists = $games > 0 ? $assists / $games : 0;
-$avatar = player_photo_src($p, '../', player_avatar_data_uri($p['name'], $p['role']));
+if(!$player) {
+    header("Location: teams.php?error=Player not found in active tournament.");
+    exit();
+}
 
-$match_history = $conn->query("SELECT ps.*, m.match_type, m.round_name, m.winner_name, t1.name AS team1, t2.name AS team2
-    FROM player_match_stats ps
-    JOIN matches m ON ps.match_id = m.id
-    LEFT JOIN teams t1 ON m.team1_id = t1.id
-    LEFT JOIN teams t2 ON m.team2_id = t2.id
-    WHERE ps.player_id = $player_id
-    ORDER BY ps.id DESC
-    LIMIT 8");
+// Fetch Player Match Statistics History
+$stmt_stats = $conn->prepare("
+    SELECT pms.kills, pms.deaths, pms.assists, m.id as match_id, m.match_type,
+           t1.short_name as team1_short, t2.short_name as team2_short, m.winner_name
+    FROM player_match_stats pms
+    JOIN matches m ON pms.match_id = m.id
+    JOIN teams t1 ON m.team1_id = t1.id
+    JOIN teams t2 ON m.team2_id = t2.id
+    WHERE pms.player_id = ? AND pms.tournament_id = ? AND m.is_locked = 1
+    ORDER BY m.id ASC
+");
+$stmt_stats->bind_param("ii", $player_id, $tournament_id);
+$stmt_stats->execute();
+$match_history = $stmt_stats->get_result()->fetch_all(MYSQLI_ASSOC);
+
+// Prepare data for Chart.js
+$chart_labels = [];
+$chart_kills = [];
+$chart_deaths = [];
+$chart_assists = [];
+
+foreach ($match_history as $match) {
+    $chart_labels[] = "Match " . $match['match_id'] . " (" . $match['team1_short'] . " vs " . $match['team2_short'] . ")";
+    $chart_kills[] = $match['kills'];
+    $chart_deaths[] = $match['deaths'];
+    $chart_assists[] = $match['assists'];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($p['name']) ?> - Pro Profile</title>
+    <title>Player Profile: <?= htmlspecialchars($player['name']) ?> — MOBA TROPZ</title>
     <link rel="stylesheet" href="../dashboard/maindashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        .profile-hero {
-            display: grid;
-            grid-template-columns: 320px 1fr;
-            gap: 28px;
-            align-items: stretch;
-            padding: 28px;
-            background: linear-gradient(135deg, rgba(15,23,42,.86), rgba(30,41,59,.58));
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: 0 24px 50px rgba(0,0,0,.28);
+        .profile-wrapper {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px;
         }
-        .profile-photo-card {
-            position: relative;
-            min-height: 390px;
-            overflow: hidden;
-            border-radius: var(--radius);
-            border: 1px solid rgba(255,255,255,.1);
-            background: rgba(2,6,23,.45);
-        }
-        .profile-photo-card img {
-            width: 100%;
-            height: 100%;
-            min-height: 390px;
-            object-fit: cover;
-            display: block;
-        }
-        .profile-photo-card::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 50%, rgba(2,6,23,.88));
-        }
-        .photo-caption {
-            position: absolute;
-            left: 20px;
-            right: 20px;
-            bottom: 20px;
-            z-index: 2;
-        }
-        .profile-main {
+        .profile-header {
             display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            gap: 26px;
-        }
-        .profile-kicker {
-            color: var(--cyan);
-            font-size: 12px;
-            font-weight: 900;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-        .profile-name {
-            margin: 10px 0 14px;
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 58px;
-            line-height: .95;
-            text-transform: uppercase;
-        }
-        .profile-tags {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .profile-tag {
-            display: inline-flex;
             align-items: center;
-            min-height: 30px;
-            padding: 6px 12px;
-            color: #020617;
-            background: var(--cyan);
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 900;
-            text-transform: uppercase;
-        }
-        .profile-tag.gold { background: var(--gold); }
-        .profile-tag.dark {
-            color: var(--text);
-            background: rgba(148,163,184,.12);
-            border: 1px solid rgba(148,163,184,.18);
-        }
-        .profile-stats {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 14px;
-        }
-        .pro-stat {
-            padding: 22px;
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(5px);
+            background: var(--card);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            transition: 0.3s;
-            position: relative;
-            overflow: hidden;
+            padding: 30px;
+            margin-bottom: 30px;
         }
-        .pro-stat:hover {
-            border-color: var(--cyan-glow);
-            background: rgba(56, 189, 248, 0.05);
-            transform: translateY(-5px);
-        }
-        .pro-stat strong {
-            display: block;
-            color: #fff;
-            font-family: 'Rajdhani', sans-serif;
-            font-size: 30px;
-            line-height: 1;
-        }
-        .pro-stat span {
-            display: block;
-            margin-top: 8px;
-            color: var(--muted);
-            font-size: 11px;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .profile-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 16px;
-            margin: 28px 0;
-        }
-        .profile-section {
-            margin-top: 30px;
-        }
-        .avatar-thumb {
-            width: 44px;
-            height: 52px;
+        .profile-avatar {
+            width: 120px;
+            height: 140px;
             object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid rgba(56,189,248,.25);
+            border-radius: 12px;
+            border: 2px solid var(--cyan);
+            margin-right: 30px;
         }
-        @media (max-width: 1100px) {
-            .profile-hero,
-            .profile-stats,
-            .profile-grid {
-                grid-template-columns: 1fr;
-            }
-            .profile-name { font-size: 42px; }
+        .profile-info h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 42px;
+            color: #fff;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: -1px;
+        }
+        .profile-info .team-tag {
+            font-size: 14px;
+            color: var(--gold);
+            margin-top: 5px;
+            display: block;
+            font-weight: 800;
+        }
+        .profile-info .role-badge {
+            display: inline-block;
+            background: var(--cyan);
+            color: #020617;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 10px;
+        }
+        .career-history-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+        }
+        .career-history-card h2 {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 24px;
+            color: #fff;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 10px;
         }
     </style>
 </head>
 <body>
-<?php render_app_header('teams', [
-    ['label' => 'Back to Teams', 'href' => 'teams.php', 'variant' => 'primary'],
-    ['label' => 'Edit Player', 'href' => 'edit_player.php?id=' . intval($p['id'])]
-]); ?>
+<?php render_app_header('teams'); ?>
 
-<main class="wrapper" style="max-width:1180px;">
-    <section class="profile-hero">
-        <div class="profile-photo-card">
-            <img src="<?= $avatar ?>" alt="<?= htmlspecialchars($p['name']) ?> profile picture">
-            <div class="photo-caption">
-                <div class="profile-kicker"><?= htmlspecialchars($p['short_name']) ?></div>
-                <div class="table-title"><?= htmlspecialchars($p['team_name']) ?></div>
-            </div>
+<div class="profile-wrapper">
+    <div class="profile-header">
+        <?php $player_thumb = player_photo_src($player, '../', player_avatar_data_uri($player['name'], $player['role'])); ?>
+        <img src="<?= $player_thumb ?>" alt="<?= htmlspecialchars($player['name']) ?> Profile" class="profile-avatar">
+        <div class="profile-info">
+            <h1><?= htmlspecialchars(strtoupper($player['name'])) ?> <?= ($player['is_captain']) ? '⭐' : '' ?></h1>
+            <span class="team-tag"><?= htmlspecialchars(strtoupper($player['short_name'])) ?> — <?= htmlspecialchars(strtoupper($player['team_name'])) ?></span>
+            <span class="role-badge"><?= htmlspecialchars(strtoupper($player['role'])) ?></span>
         </div>
+    </div>
 
-        <div class="profile-main">
-            <div>
-                <div class="profile-kicker">Professional Player Profile</div>
-                <h1 class="profile-name"><?= htmlspecialchars($p['name']) ?></h1>
-                <div class="profile-tags">
-                    <span class="profile-tag"><?= htmlspecialchars($p['role']) ?></span>
-                    <span class="profile-tag dark"><?= htmlspecialchars($p['team_name']) ?></span>
-                    <?php if(intval($p['is_captain']) === 1): ?>
-                        <span class="profile-tag gold">Captain</span>
-                    <?php endif; ?>
-                    <?php if($mvp_count > 0): ?>
-                        <span class="profile-tag gold">MVP x<?= $mvp_count ?></span>
-                    <?php endif; ?>
-                </div>
-            </div>
+    <div class="career-history-card">
+        <h2>Career History (K/D/A Progression)</h2>
+        <?php if (!empty($match_history)): ?>
+            <canvas id="killProgressionChart"></canvas>
+        <?php else: ?>
+            <p style="color:var(--muted); text-align:center;">No match statistics available for this player yet.</p>
+        <?php endif; ?>
+    </div>
+</div>
 
-            <div class="profile-main-bottom">
-                <div class="profile-stats">
-                    <div class="pro-stat" style="border-left: 4px solid var(--cyan);"><strong><?= number_format($kda, 2) ?></strong><span>KDA Ratio</span></div>
-                    <div class="pro-stat"><strong><?= $games ?></strong><span>Games Logged</span></div>
-                    <div class="pro-stat"><strong><?= number_format($avg_kills, 1) ?></strong><span>Avg Kills</span></div>
-                    <div class="pro-stat" style="border-left: 4px solid var(--gold);"><strong><?= number_format($avg_assists, 1) ?></strong><span>Avg Assists</span></div>
-                </div>
-            </div>
-        </div>
-    </section>
+<script>
+    // RADAR CHART CONFIGURATION
+    const radarCtx = document.getElementById('skillRadarChart').getContext('2d');
+    new Chart(radarCtx, {
+        type: 'radar',
+        data: {
+            labels: ['Kills', 'Assists', 'Dmg Output', 'Gold Efficiency', 'TF Participation'],
+            datasets: [{
+                label: 'Operative',
+                data: [
+                    <?= $overall_stats['matches_played'] > 0 ? ($overall_stats['total_k'] / $overall_stats['matches_played']) : 0 ?>, // Kills
+                    <?= $overall_stats['matches_played'] > 0 ? ($overall_stats['total_a'] / $overall_stats['matches_played']) : 0 ?>, // Assists
+                    <?= $overall_stats['matches_played'] > 0 ? ($player_radar_stats['total_hd'] / $overall_stats['matches_played'] / 1000) : 0 ?>, // Avg Hero Damage (scaled)
+                    <?= $overall_stats['matches_played'] > 0 ? ($player_radar_stats['total_tg'] / $overall_stats['matches_played'] / 500) : 0 ?>, // Avg Total Gold (scaled)
+                    <?= $overall_stats['matches_played'] > 0 ? ($player_radar_stats['total_tf'] / $overall_stats['matches_played']) : 0 ?> // Avg TF Participation
+                ],
+                borderColor: 'var(--cyan)', backgroundColor: 'rgba(0, 242, 255, 0.2)',
+            }, {
+                label: 'Tournament Avg',
+                data: [
+                    <?= $tourney_avg['avg_k'] ?>, // Kills
+                    <?= $tourney_avg['avg_a'] ?>, // Assists
+                    <?= $tourney_avg['avg_hd'] / 1000 ?>, // Avg Hero Damage (scaled)
+                    <?= $tourney_avg['avg_tg'] / 500 ?>, // Avg Total Gold (scaled)
+                    <?= $tourney_avg['avg_tf'] ?> // Avg TF Participation
+                ],
+                borderColor: 'rgba(255,255,255,0.2)', backgroundColor: 'rgba(255,255,255,0.05)',
+            }]
+        },
+        options: {
+            plugins: { legend: { labels: { color: '#fff', font: { family: 'Exo 2' } } } },
+            scales: {
+                r: {
+                    angleLines: { color: 'rgba(255,255,255,0.1)' },
+                    grid: { color: 'rgba(255,255,255,0.1)' },
+                    pointLabels: { color: 'var(--muted)', font: { size: 10, family: 'Rajdhani' } },
+                    ticks: { display: false }
+                }
+            }
+        }
+    });
 
-    <section class="profile-grid">
-        <div class="stat-card"><div class="val"><?= number_format($kills) ?></div><div class="stat-label">Total Kills</div></div>
-        <div class="stat-card"><div class="val"><?= number_format($assists) ?></div><div class="stat-label">Total Assists</div></div>
-        <div class="stat-card"><div class="val"><?= number_format($stats['avg_damage']) ?></div><div class="stat-label">Avg Hero Damage</div></div>
-        <div class="stat-card"><div class="val"><?= number_format($stats['avg_tf'], 1) ?>%</div><div class="stat-label">Team Fight</div></div>
-    </section>
-
-    <section class="profile-section">
-        <div class="section-head">
-            <div>
-                <div class="section-label">Recent Match Stats</div>
-                <div class="section-sub">Latest recorded heroes and performance numbers.</div>
-            </div>
-        </div>
-
-        <div class="table-shell">
-            <table class="tournament-table">
-                <thead>
-                    <tr>
-                        <th>Match</th>
-                        <th>Hero</th>
-                        <th>K</th>
-                        <th>D</th>
-                        <th>A</th>
-                        <th>Damage</th>
-                        <th>TF%</th>
-                        <th>Gold</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if($match_history->num_rows === 0): ?>
-                        <tr><td colspan="8" class="empty-cell">No match stats recorded for this player yet.</td></tr>
-                    <?php endif; ?>
-
-                    <?php while($row = $match_history->fetch_assoc()): ?>
-                        <tr>
-                            <td>
-                                <div class="table-title"><?= htmlspecialchars($row['team1'] ?? 'TBD') ?> vs <?= htmlspecialchars($row['team2'] ?? 'TBD') ?></div>
-                                <div class="table-sub"><?= htmlspecialchars($row['round_name'] ?: $row['match_type']) ?></div>
-                            </td>
-                            <td><span class="status-badge status-default"><?= htmlspecialchars($row['hero_name']) ?></span></td>
-                            <td><span class="number-pill"><?= intval($row['kills']) ?></span></td>
-                            <td><span class="number-pill"><?= intval($row['deaths']) ?></span></td>
-                            <td><span class="number-pill"><?= intval($row['assists']) ?></span></td>
-                            <td><?= number_format($row['hero_damage']) ?></td>
-                            <td><?= number_format($row['tf_participation'], 1) ?>%</td>
-                            <td><?= number_format($row['total_gold']) ?></td>
-                        </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
-        </div>
-    </section>
-</main>
+    // LINE CHART CONFIGURATION
+    <?php if (!empty($match_history)): ?>
+    const ctx = document.getElementById('killProgressionChart').getContext('2d');
+    const killProgressionChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: <?= json_encode($chart_labels) ?>,
+            datasets: [{
+                label: 'Kills',
+                data: <?= json_encode($chart_kills) ?>,
+                borderColor: 'var(--cyan)',
+                backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                tension: 0.3,
+                fill: true
+            }, {
+                label: 'Deaths',
+                data: <?= json_encode($chart_deaths) ?>,
+                borderColor: 'var(--danger)',
+                backgroundColor: 'rgba(248, 113, 113, 0.1)',
+                tension: 0.3,
+                fill: true
+            }, {
+                label: 'Assists',
+                data: <?= json_encode($chart_assists) ?>,
+                borderColor: 'var(--gold)',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false,
+                    text: 'Player K/D/A Progression'
+                },
+                legend: {
+                    labels: {
+                        color: 'var(--muted)',
+                        font: { family: 'Exo 2' }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Matches',
+                        color: 'var(--muted)',
+                        font: { family: 'Exo 2' }
+                    },
+                    ticks: { color: 'var(--muted)', font: { family: 'Exo 2' } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Count',
+                        color: 'var(--muted)',
+                        font: { family: 'Exo 2' }
+                    },
+                    ticks: { color: 'var(--muted)', font: { family: 'Exo 2' } }
+                }
+            }
+        }
+    });
+    <?php endif; ?>
+</script>
 
 <?php render_app_footer(); ?>
 </body>

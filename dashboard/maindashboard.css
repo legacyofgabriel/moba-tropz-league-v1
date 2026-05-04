@@ -29,6 +29,15 @@ body {
   flex-direction: column;
   font-family: 'Exo 2', sans-serif;
   min-height: 100vh;
+  position: relative;
+}
+
+body::after {
+  content: " ";
+  position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(0, 242, 255, 0.02), rgba(245, 158, 11, 0.01), rgba(248, 113, 113, 0.02));
+  z-index: 9999; background-size: 100% 3px, 3px 100%; pointer-events: none;
+  opacity: 0.3;
 }
 
 /* ── TACTICAL SCROLLBAR ── */
@@ -36,6 +45,28 @@ body {
 ::-webkit-scrollbar-track { background: #05070a; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--cyan); box-shadow: 0 0 10px var(--cyan-glow); }
+
+/* ── TACTICAL ANIMATIONS ── */
+@keyframes pulse-cyan {
+    0% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(0, 242, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 242, 255, 0); }
+}
+
+.status-active { animation: pulse-cyan 2s infinite; }
+.active-row { border-left: 3px solid var(--cyan) !important; background: rgba(0, 242, 255, 0.05) !important; }
+
+/* ── TERMINAL CURSOR ── */
+.terminal-cursor {
+    display: inline-block;
+    width: 8px;
+    height: 14px;
+    background: var(--cyan);
+    margin-left: 5px;
+    animation: blink-cursor 1s infinite;
+    vertical-align: middle;
+}
+@keyframes blink-cursor { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 .topbar {
   background: #000;
@@ -263,6 +294,47 @@ body {
 }
 .player-avatar-mini { width: 34px; height: 40px; object-fit: cover; border-radius: 7px; border: 1px solid rgba(56,189,248,0.25); }
 
+/* Inline Player Edit Styles */
+.player-role-select {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    appearance: none; /* Remove default arrow */
+    cursor: pointer;
+    min-width: 80px;
+}
+.player-role-select:focus {
+    outline: none;
+    border-color: var(--cyan);
+    box-shadow: 0 0 5px var(--cyan-glow);
+}
+.player-captain-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--gold);
+    cursor: pointer;
+}
+.player-edit-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.player-edit-feedback {
+    font-size: 10px; color: var(--cyan); margin-left: 5px; opacity: 0; transition: opacity 0.3s ease;
+}
+.player-edit-feedback.show { opacity: 1; }
+
+/* Tactical Notes Display */
+.tactical-notes-icon { color: var(--gold); margin-left: 10px; font-size: 14px; opacity: 0.7; }
+.tactical-notes-display {
+    background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 15px; margin-top: 20px;
+    font-size: 13px; color: var(--muted); white-space: pre-wrap; text-align: left;
+}
+
 /* ─── PROFILE PAGE UI ─── */
 .profile-hero {
     display: grid; grid-template-columns: 320px 1fr 340px; gap: 28px;
@@ -334,6 +406,124 @@ body {
   padding: 60px 40px;
 }
 
+/* ── LIVE MATCH TICKER ── */
+.match-ticker-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    border-top: 1px solid var(--cyan);
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 -5px 20px rgba(0, 242, 255, 0.2);
+}
+
+.match-ticker-content {
+    display: inline-flex; /* Use flex to align items and allow gap */
+    align-items: center;
+    animation-name: ticker-scroll;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    padding-left: 100%; /* Start off-screen */
+}
+
+@keyframes ticker-scroll {
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-50%); } /* Scroll half the duplicated content */
+}
+
+.ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    padding: 0 30px;
+    color: var(--text);
+    font-family: 'Space Grotesk', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    border-right: 1px solid rgba(56, 189, 248, 0.1);
+}
+
+.ticker-status {
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+}
+
+.ticker-status.completed {
+    background: rgba(0, 242, 255, 0.1);
+    color: var(--cyan);
+}
+
+.ticker-status.pending {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--gold);
+}
+
+.ticker-teams {
+    font-weight: 700;
+}
+
+.ticker-score {
+    color: var(--cyan);
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 800;
+    margin: 0 8px;
+}
+
+.ticker-vs {
+    color: var(--muted);
+    font-size: 10px;
+    margin: 0 8px;
+}
+
+.ticker-winner {
+    color: var(--gold);
+    font-weight: 800;
+    font-size: 11px;
+}
+
+/* Adjust wrapper padding to prevent ticker overlap */
+.wrapper {
+    padding-bottom: 80px; /* Increased to accommodate ticker height */
+}
+
+/* Score Input for Round Robin Matches */
+.score-input-rr {
+    width: 40px; /* Slightly wider for better visual balance */
+    height: 36px; /* Defined height for consistent vertical alignment */
+    background: #020617; /* Dark background for contrast */
+    border: 1px solid var(--border); /* Subtle border */
+    color: #fff;
+    text-align: center;
+    font-weight: 900;
+    font-size: 18px;
+    border-radius: 4px; /* Slightly rounded corners */
+    -moz-appearance: textfield; /* Remove spinner for Firefox */
+}
+/* Remove spinner for Chrome, Safari, Edge */
+.score-input-rr::-webkit-outer-spin-button,
+.score-input-rr::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Playoff specific styles */
+.series-badge { padding: 4px 10px; border-radius: 4px; font-family: 'Rajdhani'; font-size: 11px; font-weight: 800; color: #000; }
+.bo1 { background: #94a3b8; }
+.bo3 { background: #38bdf8; }
+.bo5 { background: #a78bfa; }
+.bo7 { background: #facc15; }
+
+.score-input-playoffs {
+    width: 55px; background: #020617; border: 2px solid rgba(56, 189, 248, 0.2);
+    color: #fff; text-align: center; font-size: 24px; font-family: 'Rajdhani';
+    border-radius: 8px; font-weight: 800;
+}
 /* ── HERO BANNER (Glassmorphism) ── */
 .hero {
   background: linear-gradient(165deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.1));
@@ -578,7 +768,7 @@ body {
 .tournament-table td {
   padding: 15px 18px;
   border-bottom: 1px solid rgba(148, 163, 184, 0.1);
-  text-align: left;
+  text-align: center; /* Enhanced: Center align all table content for clarity */
   vertical-align: middle;
 }
 

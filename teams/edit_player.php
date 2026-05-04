@@ -21,19 +21,24 @@ $tournament_id = intval($_SESSION['active_tournament']);
 $error = "";
 
 // 1. Kunin ang current info ng player
-$res = $conn->query("SELECT p.*, t.name as team_name FROM players p JOIN teams t ON p.team_id = t.id WHERE p.id = $player_id");
-$p = $res->fetch_assoc();
+$stmt_p = $conn->prepare("SELECT p.*, t.name as team_name FROM players p JOIN teams t ON p.team_id = t.id WHERE p.id = ?");
+$stmt_p->bind_param("i", $player_id);
+$stmt_p->execute();
+$p = $stmt_p->get_result()->fetch_assoc();
 
 if(!$p) { die("Player not found."); }
 
 if(isset($_POST['update'])){
-    $new_name = mysqli_real_escape_string($conn, trim($_POST['name']));
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
+    $new_name = trim($_POST['name']);
+    $role = $_POST['role'];
     $captain = isset($_POST['captain']) ? 1 : 0;
     $photo_error = validate_player_photo_upload($_FILES['photo'] ?? []);
 
     // 2. Duplicate Check (Kung pinalitan ang pangalan, check kung may katulad na sa tournament)
-    $check = $conn->query("SELECT id FROM players WHERE name='$new_name' AND tournament_id=$tournament_id AND id != $player_id");
+    $stmt_c = $conn->prepare("SELECT id FROM players WHERE name = ? AND tournament_id = ? AND id != ?");
+    $stmt_c->bind_param("sii", $new_name, $tournament_id, $player_id);
+    $stmt_c->execute();
+    $check = $stmt_c->get_result();
     
     if($photo_error) {
         $error = $photo_error;
@@ -43,11 +48,16 @@ if(isset($_POST['update'])){
         $photo_path = save_player_photo_upload($_FILES['photo'] ?? [], $player_id);
         if($photo_path) {
             delete_player_photo_file($p['photo_path'] ?? null);
-            $safe_photo = mysqli_real_escape_string($conn, $photo_path);
-            $conn->query("UPDATE players SET name='$new_name', role='$role', is_captain=$captain, photo_path='$safe_photo' WHERE id=$player_id");
+            $stmt_up = $conn->prepare("UPDATE players SET name = ?, role = ?, is_captain = ?, photo_path = ? WHERE id = ?");
+            $stmt_up->bind_param("ssisi", $new_name, $role, $captain, $photo_path, $player_id);
         } else {
-            $conn->query("UPDATE players SET name='$new_name', role='$role', is_captain=$captain WHERE id=$player_id");
+            $stmt_up = $conn->prepare("UPDATE players SET name = ?, role = ?, is_captain = ? WHERE id = ?");
+            $stmt_up->bind_param("ssii", $new_name, $role, $captain, $player_id);
         }
+        $stmt_up->execute();
+
+        log_tactical_action($conn, $_SESSION['user_id'], $tournament_id, "REASSIGN", "Modified roster data for operative: " . strtoupper($new_name));
+        
         header("Location: teams.php?msg=Player updated successfully");
         exit();
     }

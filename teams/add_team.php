@@ -3,6 +3,7 @@ include("../config/db.php");
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 include("../auth/auth_check.php");
 include("../includes/player_photos.php");
+include("../includes/team_photos.php"); // Include team photo helpers
 
 ensure_team_logo_column($conn);
 
@@ -29,7 +30,7 @@ if(isset($_POST['add'])){
     } else {
         $name = trim($_POST['name']);
         $short = trim($_POST['short']);
-        $logo_error = validate_team_logo_upload($_FILES['logo'] ?? []);
+        $logo_error = validate_team_logo_upload($_FILES['logo'] ?? []); // Use team-specific validation
 
         // Duplicate Check
         $stmt = $conn->prepare("SELECT id FROM teams WHERE (name=? OR short_name=?) AND tournament_id=?");
@@ -57,6 +58,8 @@ if(isset($_POST['add'])){
             $stmt = $conn->prepare("INSERT INTO standings (tournament_id, team_id, played, wins, losses, points) VALUES (?, ?, 0, 0, 0, 0)");
             $stmt->bind_param("ii", $tournament_id, $new_team_id);
             $stmt->execute();
+
+            log_tactical_action($conn, $_SESSION['user_id'], $tournament_id, "COMMISSION", "Deployed new squad: " . strtoupper($name));
 
             header("Location: teams.php");
             exit();

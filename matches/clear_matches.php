@@ -21,6 +21,8 @@ if(isset($_SESSION['active_tournament'])){
     $stmt3->bind_param("i", $tid);
     $stmt3->execute();
 
+    log_tactical_action($conn, $_SESSION['user_id'], $tid, "RESET", "Wiped all match fixtures and player statistics. Standings zeroed.");
+
     header("Location: matches.php?msg=Lahat ng matches ay matagumpay na nabura.");
     exit();
 }
