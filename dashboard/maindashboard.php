@@ -281,7 +281,7 @@ if ($selected_id) {
 
         .hero {
             background: linear-gradient(to right, rgba(2, 6, 23, 0.9), rgba(2, 6, 23, 0.4)), 
-                        url('https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070') center/cover;
+                        url('https://wallpapers.com/images/hd/mobile-legends-logo-with-characters-ywjg6gilkd6wgmf7.jpg') center 20%/cover;
             border-radius: 24px;
             border: 1px solid var(--glass-border);
             padding: 40px;
